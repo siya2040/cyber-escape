@@ -1,0 +1,1668 @@
+/* ==========================================================================
+   CYBER ESCAPE - IMMERSIVE CYBERPUNK HUD & GAME STYLESHEET
+   Aesthetics: Cyberpunk Neon / Retro-CRT Terminal / Translucent Glassmorphism
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Theme Variables & Base Config
+   -------------------------------------------------------------------------- */
+:root {
+  --bg-dark: hsl(222, 47%, 4%);
+  --bg-darker: hsl(222, 47%, 2%);
+  --card-bg: rgba(10, 17, 30, 0.7);
+  --card-bg-solid: hsl(222, 45%, 8%);
+  --card-bg-light: rgba(15, 27, 48, 0.85);
+  
+  --text-light: hsl(210, 40%, 93%);
+  --text-muted: hsl(210, 20%, 65%);
+  --text-dark: hsl(222, 47%, 2%);
+  
+  /* Neon Palette */
+  --cyber-cyan: hsl(180, 100%, 50%);
+  --cyber-green: hsl(120, 100%, 50%);
+  --cyber-amber: hsl(40, 100%, 50%);
+  --cyber-pink: hsl(300, 100%, 50%);
+  --cyber-red: hsl(0, 100%, 60%);
+  
+  /* Cyber Alpha Glows */
+  --glow-cyan: rgba(0, 255, 255, 0.15);
+  --glow-pink: rgba(255, 0, 255, 0.15);
+  --glow-amber: rgba(255, 170, 0, 0.15);
+  --glow-green: rgba(0, 255, 0, 0.15);
+  --glow-red: rgba(255, 51, 51, 0.15);
+  
+  /* Fonts */
+  --font-heading: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Outfit', sans-serif;
+  
+  /* Grid sizes */
+  --sidebar-width: 250px;
+  --header-height: 70px;
+}
+
+/* Global Reset & Base Setup */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+  border-left: 1px solid rgba(0, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.15);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 8px var(--cyber-cyan);
+}
+
+/* --------------------------------------------------------------------------
+   2. CRT Screen Scanline FX & Animations
+   -------------------------------------------------------------------------- */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.2) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+body.scanlines-active .crt-overlay {
+  opacity: 1;
+}
+
+body.scanlines-active::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: rgba(18, 16, 16, 0.05);
+  opacity: 0;
+  z-index: 9998;
+  pointer-events: none;
+  animation: crtFlicker 0.15s infinite;
+}
+
+/* Animations */
+@keyframes crtFlicker {
+  0% { opacity: 0.15; }
+  50% { opacity: 0.25; }
+  100% { opacity: 0.15; }
+}
+
+@keyframes pulseVisor {
+  0% { fill: rgba(0, 255, 255, 0.2); stroke: var(--cyber-cyan); filter: drop-shadow(0 0 1px var(--cyber-cyan)); }
+  50% { fill: rgba(0, 255, 255, 0.6); stroke: #ffffff; filter: drop-shadow(0 0 4px var(--cyber-cyan)); }
+  100% { fill: rgba(0, 255, 255, 0.2); stroke: var(--cyber-cyan); filter: drop-shadow(0 0 1px var(--cyber-cyan)); }
+}
+
+@keyframes pulseCollar {
+  0% { fill: var(--cyber-cyan); filter: drop-shadow(0 0 1px var(--cyber-cyan)); }
+  50% { fill: var(--cyber-pink); filter: drop-shadow(0 0 4px var(--cyber-pink)); }
+  100% { fill: var(--cyber-cyan); filter: drop-shadow(0 0 1px var(--cyber-cyan)); }
+}
+
+@keyframes viewEntrance {
+  0% { opacity: 0; transform: translateY(12px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes simbaFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(1deg); }
+}
+
+@keyframes emailInbound {
+  0% { opacity: 0; transform: translateX(-15px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Simba SVG Animation Bindings */
+.animated-simba {
+  animation: simbaFloat 4s infinite ease-in-out;
+}
+
+.animated-simba .cyber-visor-fill {
+  animation: pulseVisor 3s infinite ease-in-out;
+}
+
+.animated-simba .cyber-collar-node {
+  animation: pulseCollar 2s infinite ease-in-out;
+}
+
+/* --------------------------------------------------------------------------
+   3. Main Layout Structure
+   -------------------------------------------------------------------------- */
+.game-header {
+  height: var(--header-height);
+  background-color: var(--card-bg-light);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-text .title {
+  font-family: var(--font-heading);
+  color: var(--cyber-cyan);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.brand-text .tagline {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-heading);
+  letter-spacing: 1.5px;
+  margin-top: 1px;
+}
+
+.header-hud {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 20px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.xp-tracker {
+  flex: 1;
+  max-width: 320px;
+}
+
+.hud-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.hud-label strong {
+  color: var(--cyber-pink);
+}
+
+.xp-bar-outer {
+  height: 6px;
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.xp-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-pink));
+  box-shadow: 0 0 6px var(--cyber-cyan);
+  transition: width 0.5s ease-out;
+}
+
+.hud-value {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-align: right;
+}
+
+.score-tracker {
+  min-width: 90px;
+}
+
+.score-tracker .hud-value {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px var(--cyber-cyan);
+  text-align: left;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+}
+
+.header-btn {
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  color: var(--cyber-cyan);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+.header-btn:hover {
+  background: rgba(0, 255, 255, 0.12);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+  border-color: var(--cyber-cyan);
+}
+
+.header-btn .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyber-cyan);
+  box-shadow: 0 0 4px var(--cyber-cyan);
+}
+
+.header-btn.inactive .dot {
+  background: #555;
+  box-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Viewport Panels
+   -------------------------------------------------------------------------- */
+.game-viewport {
+  display: flex;
+  min-height: calc(100vh - var(--header-height));
+  position: relative;
+  width: 100%;
+}
+
+.game-sidebar {
+  width: var(--sidebar-width);
+  background-color: rgba(3, 8, 16, 0.95);
+  border-right: 1px solid rgba(0, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  padding: 20px 0;
+  justify-content: space-between;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.08);
+  margin-bottom: 16px;
+}
+
+.avatar-svg {
+  flex-shrink: 0;
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info .username {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 130px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.nav-btn:hover {
+  color: var(--cyber-cyan);
+  background: rgba(0, 255, 255, 0.03);
+  border-left-color: rgba(0, 255, 255, 0.3);
+  padding-left: 24px;
+}
+
+.nav-btn.active {
+  color: var(--cyber-cyan);
+  background: rgba(0, 255, 255, 0.06);
+  border-left-color: var(--cyber-cyan);
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.2);
+}
+
+.nav-btn .icon {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.nav-btn:hover .icon {
+  transform: scale(1.15);
+}
+
+.sidebar-footer {
+  padding: 16px 20px 0 20px;
+  border-top: 1px solid rgba(0, 255, 255, 0.05);
+  font-family: var(--font-heading);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+/* Backdrop */
+.sidebar-backdrop {
+  display: none;
+}
+
+/* Main Area Content */
+.game-main-content {
+  flex: 1;
+  padding: 30px 40px 60px 40px;
+  overflow-y: auto;
+  height: calc(100vh - var(--header-height));
+  position: relative;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. View Routing (Hide/Show Sections)
+   -------------------------------------------------------------------------- */
+.game-view {
+  display: none;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.game-view.active {
+  display: block;
+  animation: viewEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --------------------------------------------------------------------------
+   6. Custom Common Cyber Components
+   -------------------------------------------------------------------------- */
+.cyber-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-left: 3px solid var(--cyber-cyan);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25), 0 0 15px rgba(0, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cyber-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 255, 255, 0.08);
+}
+
+.border-cyan { border-left-color: var(--cyber-cyan); border-color: rgba(0, 255, 255, 0.15); }
+.border-pink { border-left-color: var(--cyber-pink); border-color: rgba(255, 0, 255, 0.15); }
+.border-amber { border-left-color: var(--cyber-amber); border-color: rgba(255, 170, 0, 0.15); }
+.border-green { border-left-color: var(--cyber-green); border-color: rgba(0, 255, 0, 0.15); }
+.border-red { border-left-color: var(--cyber-red); border-color: rgba(255, 51, 51, 0.15); }
+
+.shadow-cyan:hover { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 255, 255, 0.12); }
+.shadow-pink:hover { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(255, 0, 255, 0.12); }
+.shadow-amber:hover { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(255, 170, 0, 0.12); }
+.shadow-green:hover { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 255, 0, 0.12); }
+.shadow-red:hover { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 20px rgba(255, 51, 51, 0.12); }
+
+/* Buttons */
+.cyber-btn {
+  background: transparent;
+  border: 1px solid var(--cyber-cyan);
+  color: var(--cyber-cyan);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  outline: none;
+}
+
+.cyber-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.cyber-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cyber-btn:disabled {
+  border-color: #444;
+  color: #555;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.border-green { border-color: var(--cyber-green); color: var(--cyber-green); }
+.border-green:hover:not(:disabled) { background: rgba(0, 255, 0, 0.15); box-shadow: 0 0 12px rgba(0, 255, 0, 0.35) !important; }
+
+.border-red { border-color: var(--cyber-red); color: var(--cyber-red); }
+.border-red:hover:not(:disabled) { background: rgba(255, 51, 51, 0.15); box-shadow: 0 0 12px rgba(255, 51, 51, 0.35) !important; }
+
+.border-pink { border-color: var(--cyber-pink); color: var(--cyber-pink); }
+.border-pink:hover:not(:disabled) { background: rgba(255, 0, 255, 0.15); box-shadow: 0 0 12px rgba(255, 0, 255, 0.35) !important; }
+
+.border-amber { border-color: var(--cyber-amber); color: var(--cyber-amber); }
+.border-amber:hover:not(:disabled) { background: rgba(255, 170, 0, 0.15); box-shadow: 0 0 12px rgba(255, 170, 0, 0.35) !important; }
+
+.glow-green { box-shadow: 0 0 6px rgba(0, 255, 0, 0.15); }
+.glow-red { box-shadow: 0 0 6px rgba(255, 51, 51, 0.15); }
+.glow-cyan { box-shadow: 0 0 6px rgba(0, 255, 255, 0.15); }
+.glow-amber { box-shadow: 0 0 6px rgba(255, 170, 0, 0.15); }
+
+/* Common Helpers */
+.flex-row { display: flex; gap: 10px; align-items: center; }
+.flex-1 { flex: 1; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-muted { color: var(--text-muted); }
+.divider { height: 1px; background: rgba(0, 255, 255, 0.1); margin: 16px 0; }
+
+.tag {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.tag-cyan { background: var(--glow-cyan); border: 1px solid rgba(0, 255, 255, 0.3); color: var(--cyber-cyan); }
+.tag-pink { background: var(--glow-pink); border: 1px solid rgba(255, 0, 255, 0.3); color: var(--cyber-pink); }
+.tag-green { background: var(--glow-green); border: 1px solid rgba(0, 255, 0, 0.3); color: var(--cyber-green); }
+.tag-amber { background: var(--glow-amber); border: 1px solid rgba(255, 170, 0, 0.3); color: var(--cyber-amber); }
+.tag-red { background: var(--glow-red); border: 1px solid rgba(255, 51, 51, 0.3); color: var(--cyber-red); }
+
+/* Text Neon */
+.text-cyan { color: var(--cyber-cyan); text-shadow: 0 0 4px rgba(0, 255, 255, 0.3); }
+.text-pink { color: var(--cyber-pink); text-shadow: 0 0 4px rgba(255, 0, 255, 0.3); }
+.text-green { color: var(--cyber-green); text-shadow: 0 0 4px rgba(0, 255, 0, 0.3); }
+.text-amber { color: var(--cyber-amber); text-shadow: 0 0 4px rgba(255, 170, 0, 0.3); }
+.text-red { color: var(--cyber-red); text-shadow: 0 0 4px rgba(255, 51, 51, 0.3); }
+.text-white { color: #fff; }
+
+.font-heading { font-family: var(--font-heading); }
+
+/* --------------------------------------------------------------------------
+   7. Specific View Components
+   -------------------------------------------------------------------------- */
+
+/* VIEW 1: Splash Screen */
+.splash-container {
+  max-width: 600px;
+  margin: 40px auto;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 255, 255, 0.05);
+}
+
+.terminal-header {
+  background: var(--bg-darker);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+}
+
+.terminal-header .circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.terminal-header .circle.red { background: var(--cyber-red); }
+.terminal-header .circle.amber { background: var(--cyber-amber); }
+.terminal-header .circle.green { background: var(--cyber-green); }
+
+.terminal-title {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 8px;
+  letter-spacing: 1px;
+}
+
+.terminal-body {
+  background: rgba(10, 15, 26, 0.9);
+  padding: 36px 28px;
+}
+
+.splash-simba-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.logo-title {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  margin-bottom: 2px;
+}
+
+.logo-subtitle {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.terminal-dialog {
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-line {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.form-card {
+  background: rgba(15, 27, 48, 0.4);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 18px;
+}
+
+.custom-input {
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  padding: 10px 14px;
+  flex: 1;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-input:focus {
+  border-color: var(--cyber-cyan);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.25);
+}
+
+/* VIEW 2: City Map Selector */
+.view-header {
+  margin-bottom: 28px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+  padding-bottom: 14px;
+}
+
+.view-header h2 {
+  font-size: 18px;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.city-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.map-node {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 20px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+  min-height: 140px;
+}
+
+.map-node::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.map-node.node-active:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(0, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 255, 255, 0.15);
+}
+
+.map-node[data-room="1"]::after { background: var(--cyber-cyan); }
+.map-node[data-room="2"]::after { background: var(--cyber-amber); }
+.map-node[data-room="3"]::after { background: var(--cyber-pink); }
+
+.node-accent-color {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 900;
+  opacity: 0.15;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  line-height: 1;
+}
+
+.node-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.node-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.node-status {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.node-locked {
+  background: rgba(3, 8, 16, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.node-locked::after {
+  background: #333 !important;
+}
+
+.node-locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* VIEW 3: Active Escape Room HUD */
+.room-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.room-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-heading {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.room-timer-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+.timer-label {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.timer-value {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  min-width: 70px;
+}
+
+.game-simba-bubble-card {
+  margin-bottom: 24px;
+}
+
+.simba-bubble-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.simba-game-svg {
+  flex-shrink: 0;
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.speech-bubble {
+  background: var(--card-bg-solid);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 12px 16px;
+  position: relative;
+  flex: 1;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 20px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid rgba(0, 255, 255, 0.2);
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 20px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid var(--card-bg-solid);
+}
+
+.bubble-text {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+.bubble-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.hint-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  outline: none;
+}
+
+.hint-btn:hover {
+  text-decoration: underline;
+}
+
+/* Interactive Canvas viewport */
+.room-canvas-viewport {
+  background: rgba(5, 10, 20, 0.5);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+  min-height: 380px;
+  position: relative;
+}
+
+.puzzle-view {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.puzzle-view.active {
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   8. Escape Rooms Interactive Game Modules
+   -------------------------------------------------------------------------- */
+
+/* MODULE 1: Phishing Firewall Inbox Game */
+.phishing-game-layout {
+  display: flex;
+  height: 380px;
+  width: 100%;
+}
+
+.email-inbox-sidebar {
+  width: 220px;
+  background: rgba(3, 8, 16, 0.8);
+  border-right: 1px solid rgba(0, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox-title {
+  background: var(--bg-darker);
+  padding: 10px 12px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--cyber-cyan);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.inbox-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.inbox-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  animation: emailInbound 0.3s ease-out;
+}
+
+.inbox-item::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: transparent;
+}
+
+.inbox-item:hover {
+  background: rgba(0, 255, 255, 0.03);
+}
+
+.inbox-item.active {
+  background: rgba(0, 255, 255, 0.06);
+}
+
+.inbox-item.active::before {
+  background: var(--cyber-cyan);
+}
+
+.inbox-item.cleared {
+  opacity: 0.5;
+}
+
+.inbox-item.cleared::before {
+  background: var(--cyber-green) !important;
+}
+
+.inbox-item .item-sender {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-item .item-subject {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-item .item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.inbox-item .item-badge {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.email-details-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(5, 10, 20, 0.3);
+}
+
+.email-header-card {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+  background: rgba(10, 17, 30, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meta-row {
+  display: flex;
+  font-size: 12px;
+}
+
+.meta-row .key {
+  font-family: var(--font-heading);
+  color: var(--text-muted);
+  width: 75px;
+  flex-shrink: 0;
+}
+
+.meta-row .val {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-body-content {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-light);
+  white-space: pre-wrap;
+}
+
+.sus-link {
+  color: var(--cyber-pink);
+  text-decoration: underline;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.sus-link:hover {
+  text-shadow: 0 0 4px var(--cyber-pink);
+}
+
+.email-decision-footer {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(0, 255, 255, 0.1);
+  display: flex;
+  gap: 12px;
+  background: var(--bg-darker);
+}
+
+/* MODULE 2: Password Crypt */
+.password-game-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 24px;
+  gap: 24px;
+  align-items: center;
+  height: 380px;
+}
+
+.vault-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 16, 0.6);
+  border: 1px dashed rgba(0, 255, 255, 0.2);
+  border-radius: 6px;
+  height: 100%;
+}
+
+.vault-graphic {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 4px solid var(--cyber-red);
+  color: var(--cyber-red);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px var(--glow-red), inset 0 0 15px var(--glow-red);
+  transition: all 0.4s ease;
+  user-select: none;
+}
+
+.vault-graphic.unlocked {
+  border-color: var(--cyber-green);
+  color: var(--cyber-green);
+  box-shadow: 0 0 20px var(--glow-green), inset 0 0 20px var(--glow-green);
+  text-shadow: 0 0 4px var(--cyber-green);
+}
+
+.interactive-terminal {
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.terminal-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.metrics-dashboard {
+  background: rgba(10, 17, 30, 0.4);
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-family: var(--font-heading);
+}
+
+.metric-row .key {
+  color: var(--text-muted);
+}
+
+.metric-row .val {
+  font-weight: 700;
+}
+
+/* MODULE 3: Cipher Console */
+.cipher-game-layout {
+  padding: 24px;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cipher-terminal {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg-darker);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 20px;
+  font-family: var(--font-heading);
+}
+
+.terminal-row {
+  font-size: 11px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.ciphertext-box {
+  background: rgba(10, 17, 30, 0.6);
+  border: 1px solid rgba(255, 0, 255, 0.2);
+  border-radius: 4px;
+  padding: 14px 18px;
+  color: var(--cyber-pink);
+  font-size: 15px;
+  letter-spacing: 1px;
+  margin: 12px 0;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.decryption-controls {
+  margin: 14px 0;
+}
+
+.cyber-range {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 255, 255, 0.15);
+  outline: none;
+  transition: background 0.3s;
+  margin-top: 6px;
+}
+
+.cyber-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cyber-cyan);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--cyber-cyan);
+  transition: all 0.1s ease;
+}
+
+.cyber-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.plaintext-preview {
+  background: rgba(0, 255, 255, 0.04);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 12px 14px;
+  color: var(--cyber-cyan);
+  font-size: 14px;
+  letter-spacing: 1px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* VIEW 4: Room Debrief */
+.debrief-card {
+  max-width: 600px;
+  margin: 30px auto;
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 255, 0, 0.25);
+  border-top: 4px solid var(--cyber-green);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(0, 255, 0, 0.05);
+}
+
+.debrief-card h1 {
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+
+.completion-metrics {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+  gap: 12px;
+}
+
+.c-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  background: var(--bg-darker);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 12px 6px;
+}
+
+.c-metric .label {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.c-metric .value {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* VIEW 5: Profile & Badges */
+.profile-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-row .label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.stat-row .value {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.badge-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.badge-item {
+  background: rgba(10, 17, 30, 0.6);
+  border: 1px solid rgba(255, 0, 255, 0.15);
+  border-radius: 6px;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.badge-item:hover:not(.locked) {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px var(--glow-pink);
+  border-color: var(--cyber-pink);
+}
+
+.badge-item.locked {
+  opacity: 0.35;
+  border-color: rgba(255,255,255,0.05);
+  background: rgba(3, 8, 16, 0.4);
+}
+
+.badge-icon {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.badge-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.badge-date {
+  font-family: var(--font-heading);
+  font-size: 8px;
+  color: var(--text-muted);
+}
+
+/* VIEW 6: Mock Leaderboard Table */
+.leaderboard-table-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+}
+
+.cyber-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--font-body);
+}
+
+.cyber-table th {
+  background: var(--bg-darker);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: var(--cyber-cyan);
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+  letter-spacing: 1px;
+}
+
+.cyber-table td {
+  padding: 12px 18px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-light);
+}
+
+.cyber-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cyber-table tbody tr:hover {
+  background: rgba(0, 255, 255, 0.02);
+}
+
+.cyber-table tr.highlighted {
+  background: rgba(0, 255, 255, 0.06);
+}
+
+.cyber-table tr.highlighted td {
+  font-weight: 700;
+}
+
+/* VIEW 7: Educator Telemetry Dashboard */
+.classroom-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.classroom-mock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.telemetry-item {
+  background: var(--bg-darker);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetry-item .t-class {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.telemetry-item .t-students {
+  font-size: 11px;
+  color: var(--cyber-cyan);
+}
+
+.telemetry-item .t-completions {
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  color: var(--cyber-green);
+}
+
+/* --------------------------------------------------------------------------
+   9. Responsive Design & Hamburger Animations
+   -------------------------------------------------------------------------- */
+
+/* Tablet & Mobile Screens */
+@media (max-width: 950px) {
+  .profile-split-grid,
+  .classroom-layout-grid,
+  .password-game-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .password-game-layout {
+    height: auto;
+    align-items: stretch;
+  }
+  
+  .vault-panel {
+    padding: 20px;
+  }
+  
+  .phishing-game-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .email-inbox-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.15);
+    height: 140px;
+  }
+  
+  .email-details-panel {
+    height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 60px;
+  }
+  
+  .game-header {
+    padding: 0 16px;
+  }
+  
+  .header-hud {
+    display: none; /* Hide top HUD on mobile, stats can be viewed in sidebar / profile */
+  }
+  
+  .mobile-menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 22px;
+    height: 15px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1100;
+    outline: none;
+  }
+  
+  .mobile-menu-toggle .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--cyber-cyan);
+    transition: all 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
+    box-shadow: 0 0 4px var(--cyber-cyan);
+  }
+  
+  /* Collapsible Navigation Drawer */
+  .game-sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    height: calc(100vh - var(--header-height));
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.55);
+    background-color: rgba(3, 8, 16, 0.98);
+    width: var(--sidebar-width);
+  }
+  
+  body.menu-open .game-sidebar {
+    transform: translateX(0);
+  }
+  
+  /* Backdrop overlay */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - var(--header-height));
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 98;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  body.menu-open .sidebar-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  /* Animated Hamburger transforms */
+  body.menu-open .mobile-menu-toggle .bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  
+  body.menu-open .mobile-menu-toggle .bar:nth-child(2) {
+    opacity: 0;
+  }
+  
+  body.menu-open .mobile-menu-toggle .bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+  
+  .game-main-content {
+    padding: 20px 16px 40px 16px;
+    height: calc(100vh - var(--header-height));
+  }
+  
+  .city-map-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .simba-bubble-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .speech-bubble::before,
+  .speech-bubble::after {
+    display: none; /* Hide bubble arrow on mobile stacking */
+  }
+}

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Escape with Simba - Interactive Web Game</title>
+  <meta name="description" content="A gorgeous, retro-cyberpunk browser escape room game teaching real-world cybersecurity concepts. Guided by Simba.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Game CSS -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="scanlines-active">
+  <!-- Retro CRT Overlay -->
+  <div class="crt-overlay" id="crtOverlay"></div>
+  
+  <!-- Global Game Header -->
+  <header class="game-header">
+    <div class="header-brand">
+      <button class="mobile-menu-toggle" id="menuToggle" aria-label="Toggle Sidebar Menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+      <div class="brand-logo">
+        <svg class="simba-svg animated-simba" width="32" height="32" viewBox="0 0 40 40">
+          <rect x="10" y="20" width="20" height="14" fill="#ff9900" />
+          <rect x="12" y="10" width="16" height="14" fill="#ff9900" />
+          <rect x="11" y="7" width="5" height="5" fill="#ff9900" />
+          <rect x="24" y="7" width="5" height="5" fill="#ff9900" />
+          <rect x="12" y="8" width="3" height="3" fill="#ff6600" />
+          <rect x="25" y="8" width="3" height="3" fill="#ff6600" />
+          <rect x="15" y="15" width="3" height="3" fill="#111111" />
+          <rect x="22" y="15" width="3" height="3" fill="#111111" />
+          <rect x="16" y="15" width="1" height="1" fill="#66ffff" />
+          <rect x="23" y="15" width="1" height="1" fill="#66ffff" />
+          <rect x="18" y="19" width="4" height="2" fill="#ff5555" />
+          <rect x="17" y="21" width="2" height="1" fill="#cc4444" />
+          <rect x="21" y="21" width="2" height="1" fill="#cc4444" />
+          <rect x="13" y="24" width="14" height="8" fill="#ffffaa" />
+          <rect x="8" y="30" width="6" height="4" fill="#ff9900" />
+          <rect x="26" y="30" width="6" height="4" fill="#ff9900" />
+          <rect x="28" y="20" width="4" height="2" fill="#ff9900" />
+          <rect x="30" y="18" width="4" height="4" fill="#ff9900" />
+          <rect x="32" y="16" width="3" height="3" fill="#ff9900" />
+          <rect class="cyber-collar-node" x="12" y="22" width="16" height="3" fill="#00ffff" />
+          <rect class="cyber-collar-core" x="19" y="23" width="2" height="2" fill="#ffaa00" />
+          <rect class="cyber-visor-fill" x="14" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+          <rect class="cyber-visor-fill" x="21" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+          <rect x="19" y="15" width="2" height="1" fill="rgba(0, 255, 255, 0.3)" />
+        </svg>
+        <div class="brand-text">
+          <span class="title">CYBER ESCAPE</span>
+          <span class="tagline">narrative security game</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Real-time XP & Progression HUD -->
+    <div class="header-hud">
+      <div class="hud-item xp-tracker">
+        <span class="hud-label">XP LEVEL <strong id="hudLevelVal">1</strong></span>
+        <div class="xp-bar-outer">
+          <div class="xp-bar-inner" id="hudXpBar" style="width: 10%;"></div>
+        </div>
+        <span class="hud-value" id="hudXpVal">50 / 500 XP</span>
+      </div>
+      <div class="hud-item score-tracker">
+        <span class="hud-label">SCORE</span>
+        <span class="hud-value text-cyan" id="hudScoreVal">00000</span>
+      </div>
+    </div>
+    
+    <div class="header-controls">
+      <button class="header-btn" id="crtToggleBtn" title="Toggle Scanline FX">
+        <span class="dot"></span> Retro Filter
+      </button>
+    </div>
+  </header>
+
+  <!-- Central Game Viewport -->
+  <div class="game-viewport">
+    
+    <!-- Sidebar Controls -->
+    <aside class="game-sidebar" id="gameSidebar">
+      <div class="sidebar-user">
+        <div class="user-avatar">
+          <svg class="avatar-svg animated-simba" width="48" height="48" viewBox="0 0 40 40">
+            <rect x="10" y="20" width="20" height="14" fill="#ffaa00" />
+            <rect x="12" y="10" width="16" height="14" fill="#ffaa00" />
+            <rect x="11" y="7" width="5" height="5" fill="#ffaa00" />
+            <rect x="24" y="7" width="5" height="5" fill="#ffaa00" />
+            <rect x="12" y="8" width="3" height="3" fill="#ff5500" />
+            <rect x="25" y="8" width="3" height="3" fill="#ff5500" />
+            <rect x="15" y="15" width="3" height="3" fill="#111111" />
+            <rect x="22" y="15" width="3" height="3" fill="#111111" />
+            <rect x="16" y="15" width="1" height="1" fill="#66ffff" />
+            <rect x="23" y="15" width="1" height="1" fill="#66ffff" />
+            <rect x="18" y="19" width="4" height="2" fill="#ff3333" />
+            <rect x="17" y="21" width="2" height="1" fill="#c44" />
+            <rect x="21" y="21" width="2" height="1" fill="#c44" />
+            <rect x="13" y="24" width="14" height="8" fill="#ffff99" />
+            <rect x="8" y="30" width="6" height="4" fill="#ffaa00" />
+            <rect x="26" y="30" width="6" height="4" fill="#ffaa00" />
+            <rect x="28" y="20" width="4" height="2" fill="#ffaa00" />
+            <rect x="30" y="18" width="4" height="4" fill="#ffaa00" />
+            <rect x="32" y="16" width="3" height="3" fill="#ffaa00" />
+            <rect class="cyber-collar-node" x="12" y="22" width="16" height="3" fill="#ff00ff" />
+            <rect class="cyber-collar-core" x="19" y="23" width="2" height="2" fill="#00ffff" />
+            <rect class="cyber-visor-fill" x="14" y="14" width="5" height="3" fill="rgba(255, 0, 255, 0.2)" stroke="#ff00ff" stroke-width="0.5" />
+            <rect class="cyber-visor-fill" x="21" y="14" width="5" height="3" fill="rgba(255, 0, 255, 0.2)" stroke="#ff00ff" stroke-width="0.5" />
+            <rect x="19" y="15" width="2" height="1" fill="rgba(255, 0, 255, 0.3)" />
+          </svg>
+        </div>
+        <div class="user-info">
+          <div class="username" id="sidebarUsername">GUEST_PLAYER</div>
+          <div class="badge tag-pink" style="font-size: 8px;" id="sidebarRank">CYBER_CADET</div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="landing" id="navBtnLanding">
+          <span class="icon">🚀</span>
+          <span class="label">Main Screen</span>
+        </button>
+        <button class="nav-btn" data-view="map" id="navBtnMap">
+          <span class="icon">🗺️</span>
+          <span class="label">City Escape Map</span>
+        </button>
+        <button class="nav-btn" data-view="profile" id="navBtnProfile">
+          <span class="icon">🏆</span>
+          <span class="label">Player Profile</span>
+        </button>
+        <button class="nav-btn" data-view="leaderboard" id="navBtnLeaderboard">
+          <span class="icon">📈</span>
+          <span class="label">Leaderboards</span>
+        </button>
+        <button class="nav-btn" data-view="classroom" id="navBtnClassroom">
+          <span class="icon">🏫</span>
+          <span class="label">Classroom portal</span>
+        </button>
+        <button class="nav-btn text-red" id="navBtnLogout" style="margin-top: 14px; border-top: 1px solid rgba(255, 51, 51, 0.15);">
+          <span class="icon">🚪</span>
+          <span class="label">Logout Session</span>
+        </button>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <span>© CYBER ESCAPE v1.0.0</span>
+      </div>
+    </aside>
+    
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    
+    <!-- MAIN WINDOW PANEL -->
+    <main class="game-main-content">
+      
+      <!-- ================= 1. VIEW: LANDING SPLASH ================= -->
+      <section class="game-view active" id="view-landing">
+        <div class="splash-container">
+          <div class="terminal-header">
+            <span class="circle red"></span>
+            <span class="circle amber"></span>
+            <span class="circle green"></span>
+            <span class="terminal-title">CYBER_ESCAPE_SYS_INITIALIZE.EXE</span>
+          </div>
+          
+          <div class="terminal-body text-center">
+            <div class="splash-simba-container">
+              <svg class="splash-simba animated-simba" width="96" height="96" viewBox="0 0 40 40">
+                <!-- Body -->
+                <rect x="10" y="20" width="20" height="14" fill="#ff9900" />
+                <!-- Head -->
+                <rect x="12" y="10" width="16" height="14" fill="#ff9900" />
+                <!-- Ears -->
+                <rect x="11" y="7" width="5" height="5" fill="#ff9900" />
+                <rect x="24" y="7" width="5" height="5" fill="#ff9900" />
+                <rect x="12" y="8" width="3" height="3" fill="#ff6600" />
+                <rect x="25" y="8" width="3" height="3" fill="#ff6600" />
+                <!-- Face -->
+                <rect x="15" y="15" width="3" height="3" fill="#111111" />
+                <rect x="22" y="15" width="3" height="3" fill="#111111" />
+                <rect x="16" y="15" width="1" height="1" fill="#66ffff" />
+                <rect x="23" y="15" width="1" height="1" fill="#66ffff" />
+                <!-- Nose -->
+                <rect x="18" y="19" width="4" height="2" fill="#ff5555" />
+                <!-- Mouth -->
+                <rect x="17" y="21" width="2" height="1" fill="#cc4444" />
+                <rect x="21" y="21" width="2" height="1" fill="#cc4444" />
+                <!-- Belly -->
+                <rect x="13" y="24" width="14" height="8" fill="#ffffaa" />
+                <!-- Paws -->
+                <rect x="8" y="30" width="6" height="4" fill="#ff9900" />
+                <rect x="26" y="30" width="6" height="4" fill="#ff9900" />
+                <!-- Tail -->
+                <rect x="28" y="20" width="4" height="2" fill="#ff9900" />
+                <rect x="30" y="18" width="4" height="4" fill="#ff9900" />
+                <rect x="32" y="16" width="3" height="3" fill="#ff9900" />
+                <!-- Cyber collar -->
+                <rect class="cyber-collar-node" x="12" y="22" width="16" height="3" fill="#00ffff" />
+                <rect class="cyber-collar-core" x="19" y="23" width="2" height="2" fill="#ffaa00" />
+                <!-- Visor glasses -->
+                <rect class="cyber-visor-fill" x="14" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+                <rect class="cyber-visor-fill" x="21" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+                <rect x="19" y="15" width="2" height="1" fill="rgba(0, 255, 255, 0.3)" />
+              </svg>
+            </div>
+            
+            <h1 class="logo-title font-heading text-cyan">CYBER ESCAPE</h1>
+            <div class="logo-subtitle text-amber">with Simba the Cyber Cat</div>
+            
+            <div class="terminal-dialog">
+              <p class="dialog-line text-green" style="border-right: 2px solid var(--cyber-green);" id="landingDialogue">
+                "Initializing firewall overrides... System bypass offline. Meow! I need a cyber specialist to help me patch these mainframe locks. Will you start your escape?"
+              </p>
+            </div>
+            
+            <div class="user-auth-options">
+              <div class="form-card" id="landingAuthCard">
+                <h3 class="font-heading text-pink" style="margin-bottom:12px; text-align:center;">INITIATE IDENTITY NODE</h3>
+                
+                <div class="form-group" style="margin-bottom:12px; text-align:left;">
+                  <label class="terminal-label" for="usernameInput">HACKER CODENAME:</label>
+                  <input type="text" id="usernameInput" class="custom-input" placeholder="Enter codename (e.g. NEO)..." maxlength="12" />
+                </div>
+                
+                <div class="form-group" style="margin-bottom:16px; text-align:left;">
+                  <label class="terminal-label" for="passwordInput">SECURITY PASSCODE:</label>
+                  <input type="password" id="passwordInput" class="custom-input" placeholder="Enter password passcode..." maxlength="16" />
+                </div>
+                
+                <div class="flex-row" style="margin-bottom:12px; width: 100%;">
+                  <button class="cyber-btn border-green glow-green flex-1" id="loginBtn">SIGN IN</button>
+                  <button class="cyber-btn border-pink glow-pink flex-1" id="registerBtn">REGISTER</button>
+                </div>
+                
+                <div class="divider" style="margin: 8px 0 12px;"></div>
+                <button class="cyber-btn border-cyan" style="width:100%;" id="guestPlayBtn">PLAY AS GUEST</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- ================= 2. VIEW: MAP SELECTOR ================= -->
+      <section class="game-view" id="view-map">
+        <div class="view-header">
+          <h2 class="font-heading text-cyan">// ESCAPE ROOM MAP HUB</h2>
+          <p class="text-muted" style="font-size:12px;">Choose a compromised server room to initiate decryption overrides. Defeat all 10 to rescue Simba!</p>
+        </div>
+        
+        <!-- Room Selector Grid -->
+        <div class="city-map-grid">
+          
+          <!-- ROOM 1 -->
+          <div class="map-node node-active" id="roomNode1" data-room="1">
+            <div class="node-accent-color text-cyan">01</div>
+            <div class="node-icon">📧</div>
+            <div class="node-name">Phishing Firewall</div>
+            <div class="node-status text-cyan">ACTIVE PREVIEW</div>
+          </div>
+          
+          <!-- ROOM 2 -->
+          <div class="map-node node-active" id="roomNode2" data-room="2">
+            <div class="node-accent-color text-amber">02</div>
+            <div class="node-icon">🔑</div>
+            <div class="node-name">Password Crypt</div>
+            <div class="node-status text-amber">ACTIVE PREVIEW</div>
+          </div>
+          
+          <!-- ROOM 3 -->
+          <div class="map-node node-active" id="roomNode3" data-room="3">
+            <div class="node-accent-color text-pink">03</div>
+            <div class="node-icon">💻</div>
+            <div class="node-name">Cipher Console</div>
+            <div class="node-status text-pink">ACTIVE PREVIEW</div>
+          </div>
+          
+          <!-- MOCK LOCKED ROOMS 4 - 10 -->
+          <div class="map-node node-locked" id="roomNode4">
+            <div class="node-accent-color text-muted">04</div>
+            <div class="node-icon">🦠</div>
+            <div class="node-name">Malware Lab</div>
+            <div class="node-status text-red">LOCKED [LEVEL 2 Required]</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode5">
+            <div class="node-accent-color text-muted">05</div>
+            <div class="node-icon">🔐</div>
+            <div class="node-name">MFA Database</div>
+            <div class="node-status text-red">LOCKED [LEVEL 2 Required]</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode6">
+            <div class="node-accent-color text-muted">06</div>
+            <div class="node-icon">📡</div>
+            <div class="node-name">Network Switch</div>
+            <div class="node-status text-red">LOCKED</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode7">
+            <div class="node-accent-color text-muted">07</div>
+            <div class="node-icon">🕵️</div>
+            <div class="node-name">OSINT Intranet</div>
+            <div class="node-status text-red">LOCKED</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode8">
+            <div class="node-accent-color text-muted">08</div>
+            <div class="node-icon">🧅</div>
+            <div class="node-name">Dark Web Hub</div>
+            <div class="node-status text-red">LOCKED</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode9">
+            <div class="node-accent-color text-muted">09</div>
+            <div class="node-icon">📜</div>
+            <div class="node-name">System Metadata</div>
+            <div class="node-status text-red">LOCKED</div>
+          </div>
+
+          <div class="map-node node-locked" id="roomNode10">
+            <div class="node-accent-color text-muted">10</div>
+            <div class="node-icon">🚨</div>
+            <div class="node-name">Breach Response</div>
+            <div class="node-status text-red">LOCKED</div>
+          </div>
+          
+        </div>
+      </section>
+      
+      <!-- ================= 3. VIEW: ACTIVE GAME BOARD ================= -->
+      <section class="game-view" id="view-room">
+        <!-- Room Info Header -->
+        <div class="room-game-header">
+          <div class="room-title">
+            <span class="tag tag-cyan" id="roomNumberLabel">ROOM 01</span>
+            <h2 class="font-heading inline-heading text-white" id="roomTitleLabel">Phishing Firewall</h2>
+          </div>
+          
+          <div class="room-timer-container">
+            <span class="timer-label">RUN TIME:</span>
+            <span class="timer-value font-heading text-cyan" id="gameTimer">00:00.00</span>
+          </div>
+        </div>
+        
+        <!-- Simba Interactive Guide Board -->
+        <div class="game-simba-bubble-card">
+          <div class="simba-bubble-container">
+            <svg class="simba-game-svg animated-simba" id="gameSimbaCat" width="72" height="72" viewBox="0 0 40 40">
+              <rect x="10" y="20" width="20" height="14" fill="#ff9900" />
+              <rect x="12" y="10" width="16" height="14" fill="#ff9900" />
+              <rect x="11" y="7" width="5" height="5" fill="#ff9900" />
+              <rect x="24" y="7" width="5" height="5" fill="#ff9900" />
+              <rect x="12" y="8" width="3" height="3" fill="#ff6600" />
+              <rect x="25" y="8" width="3" height="3" fill="#ff6600" />
+              <g id="gameSimbaEyes">
+                <rect x="15" y="15" width="3" height="3" fill="#111111" />
+                <rect x="22" y="15" width="3" height="3" fill="#111111" />
+                <rect x="16" y="15" width="1" height="1" fill="#66ffff" />
+                <rect x="23" y="15" width="1" height="1" fill="#66ffff" />
+              </g>
+              <rect x="18" y="19" width="4" height="2" fill="#ff5555" />
+              <g id="gameSimbaMouth">
+                <rect x="17" y="21" width="2" height="1" fill="#cc4444" />
+                <rect x="21" y="21" width="2" height="1" fill="#cc4444" />
+              </g>
+              <rect x="13" y="24" width="14" height="8" fill="#ffffaa" />
+              <rect x="8" y="30" width="6" height="4" fill="#ff9900" />
+              <rect x="26" y="30" width="6" height="4" fill="#ff9900" />
+              <rect x="28" y="20" width="4" height="2" fill="#ff9900" />
+              <rect x="30" y="18" width="4" height="4" fill="#ff9900" />
+              <rect x="32" y="16" width="3" height="3" fill="#ff9900" />
+              <rect class="cyber-collar-node" x="12" y="22" width="16" height="3" fill="#00ffff" />
+              <rect class="cyber-collar-core" x="19" y="23" width="2" height="2" fill="#ffaa00" />
+              <rect class="cyber-visor-fill" id="gameSimbaVisorLeft" x="14" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+              <rect class="cyber-visor-fill" id="gameSimbaVisorRight" x="21" y="14" width="5" height="3" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="0.5" />
+              <rect x="19" y="15" width="2" height="1" fill="rgba(0, 255, 255, 0.3)" />
+            </svg>
+            <div class="speech-bubble">
+              <p class="bubble-text" id="gameSimbaDialogue">"Setting entry points... Loading decryption keys. Meow! Answer correctly to purge the system blocks!"</p>
+              <div class="bubble-controls">
+                <button class="hint-btn font-heading text-pink" id="requestHintBtn">[GET HINT]</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- PUZZLE viewport container -->
+        <div class="room-canvas-viewport" id="activePuzzleContainer">
+          
+          <!-- ================= PUZZLE 1: PHISHING FIREWALL ================= -->
+          <div class="puzzle-view active" id="puzzle-phishing">
+            <div class="phishing-game-layout">
+              <div class="email-inbox-sidebar">
+                <div class="inbox-title">&gt;_ INCOMING INBOX</div>
+                <div class="inbox-list" id="phishingInboxList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="email-details-panel">
+                <div class="email-header-card">
+                  <div class="meta-row">
+                    <span class="key">FROM:</span>
+                    <span class="val text-white" id="emailSender">accounts-secure@netflx-support.com</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">SUBJECT:</span>
+                    <span class="val text-pink" id="emailSubject">⚠️ ALERT: ACCOUNT LOCK DETECTED! ACT NOW!</span>
+                  </div>
+                </div>
+                
+                <div class="email-body-content" id="emailBody">
+                  Dear Netflix Customer,<br><br>
+                  We detected suspicious login activities on your account node from IP 184.22.9.11. To secure your account, click the link below to verify your details within 24 hours. Failure to do so will result in permanent account termination.<br><br>
+                  <a href="#" class="sus-link" id="emailLink">http://netflx-support-portal.info/login/secure</a>
+                </div>
+                
+                <div class="email-decision-footer">
+                  <button class="cyber-btn border-green glow-green flex-1" id="flagLegitBtn">MARK LEGITIMATE EMAIL</button>
+                  <button class="cyber-btn border-red glow-red flex-1" id="flagPhishBtn">FLAG PHISHING EMAIL</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 2: PASSWORD CRYPT ================= -->
+          <div class="puzzle-view" id="puzzle-password">
+            <div class="password-game-layout">
+              <div class="vault-panel text-center">
+                <div class="vault-graphic font-heading" id="vaultStatusGraphic">LOCKED</div>
+                <p class="body-text" style="font-size:12px; margin-top:8px;">Analyze security metrics to override encryption codes.</p>
+              </div>
+              
+              <div class="interactive-terminal">
+                <div class="terminal-label">&gt;_ COMPILE SECURE VAULT ACCESS PASSCODE</div>
+                
+                <div class="form-group" style="margin-top:10px;">
+                  <input type="text" id="gamePasswordInput" class="terminal-input" placeholder="Compile password node..." />
+                </div>
+                
+                <div class="progress-bar-container">
+                  <div class="progress-bar bar-red" id="gamePasswordScoreBar"></div>
+                </div>
+                
+                <div class="metrics-dashboard">
+                  <div class="metric-row">
+                    <span class="key">ENTROPY RATING:</span>
+                    <span class="val text-red" id="gamePasswordRating">CRITICAL</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="key">CRACK SPEED ESTIMATE:</span>
+                    <span class="val text-white" id="gamePasswordSpeed">0.0001 SECONDS</span>
+                  </div>
+                </div>
+                
+                <button class="cyber-btn border-green glow-green" style="width:100%; margin-top:14px;" id="gamePasswordSubmitBtn" disabled>SUBMIT & LOCK VAULT</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 3: CIPHER CONSOLE ================= -->
+          <div class="puzzle-view" id="puzzle-cipher">
+            <div class="cipher-game-layout">
+              <div class="cipher-terminal">
+                <div class="terminal-row">
+                  <span class="text-muted">HOST SYSTEM OVERRIDE PRESET...</span>
+                </div>
+                <div class="terminal-row text-pink">
+                  <span>[CIPHERTEXT DATA DETECTED]</span>
+                </div>
+                
+                <div class="ciphertext-box font-heading" id="ciphertextDisplay">
+                  Uifsf jt b tfdsfu cbuo uibu dbot ftdbqf.
+                </div>
+                
+                <div class="decryption-controls">
+                  <!-- Sliders / buttons for index shifting -->
+                  <div class="form-group">
+                    <label class="terminal-label" for="shiftSelector">SHIFT OFFSET KEY (<span class="text-cyan" id="shiftValLabel">0</span>):</label>
+                    <input type="range" class="cyber-range" id="shiftSelector" min="0" max="25" value="0" />
+                  </div>
+                </div>
+                
+                <div class="plaintext-preview font-heading" id="plaintextPreview">
+                  [PLAIN TEXT DECRYPTION PREVIEW HERE]
+                </div>
+                
+                <button class="cyber-btn border-green glow-green" style="width:100%; margin-top:12px;" id="submitCipherBtn">EXECUTE OVERRIDE COMMAND</button>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+      
+      <!-- ================= 4. VIEW: ROOM DEBRIEF ================= -->
+      <section class="game-view" id="view-debrief">
+        <div class="debrief-card text-center shadow-green">
+          <h1 class="font-heading text-green">ROOM CLEAR // SYSTEM PURGED</h1>
+          <div class="divider" style="background: var(--cyber-green); margin: 16px 0;"></div>
+          
+          <div class="completion-metrics">
+            <div class="c-metric">
+              <span class="label">XP AWARDED</span>
+              <span class="value text-cyan">+150 XP</span>
+            </div>
+            <div class="c-metric">
+              <span class="label">OVERRIDE TIME</span>
+              <span class="value text-pink" id="debriefTime">00:45.22</span>
+            </div>
+            <div class="c-metric">
+              <span class="label">BADGE ACQUIRED</span>
+              <span class="value text-green" id="debriefBadgeName">Phishing Spotter</span>
+            </div>
+          </div>
+          
+          <div class="cyber-card border-green shadow-green text-left" style="background:var(--bg-darker); margin-top:20px;">
+            <h3 class="font-heading text-green">&gt; REAL WORLD CYBERSECURITY EQUIVALENCE</h3>
+            <p class="body-text" id="debriefEquivalence" style="margin-top:8px; font-size:13px; line-height:1.75;">
+              Phishing attacks exploit social engineering vectors rather than purely technical security loops. By spotting sender mismatched domains, urgency, and credential requests, you successfully isolated threats mapped to CompTIA Security+ Domain 1.1 (Threats and Vulnerabilities) and NIST SP 800-53 Privacy Controls!
+            </p>
+          </div>
+          
+          <div class="debrief-controls" style="margin-top:24px; display:flex; gap:12px;">
+            <button class="cyber-btn border-cyan" style="flex:1;" id="debriefReturnMapBtn">RETURN TO MAP HUB</button>
+            <button class="cyber-btn border-pink" style="flex:1;" id="debriefShareBadgeBtn">DOWNLOAD COMPLETION CERTIFICATE</button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- ================= 5. VIEW: PROFILE & BADGES ================= -->
+      <section class="game-view" id="view-profile">
+        <div class="view-header">
+          <h2 class="font-heading text-cyan">// PLAYER ARCHIVE NODE</h2>
+          <p class="text-muted" style="font-size:12px;">Review active statistics, network badges, and cybersecurity progression nodes.</p>
+        </div>
+        
+        <div class="profile-split-grid">
+          
+          <!-- Stats Panel -->
+          <div class="cyber-card border-cyan shadow-cyan">
+            <h3 class="font-heading text-cyan" style="margin-bottom:14px;">CYBERNETIC LOGS</h3>
+            <div class="stat-list">
+              <div class="stat-row">
+                <span class="label">PLAYER CODENAME:</span>
+                <span class="value text-white" id="profileUsername">GUEST_PLAYER</span>
+              </div>
+              <div class="stat-row">
+                <span class="label">NETWORK RANK:</span>
+                <span class="value text-pink" id="profileRank">CYBER_CADET</span>
+              </div>
+              <div class="stat-row">
+                <span class="label">TOTAL XP ACCUMULATION:</span>
+                <span class="value text-cyan" id="profileTotalXp">50 XP</span>
+              </div>
+              <div class="stat-row">
+                <span class="label">COMPLETED ESCAPE ROOMS:</span>
+                <span class="value text-green" id="profileCompletedCount">0 / 10</span>
+              </div>
+              <div class="stat-row">
+                <span class="label">CUMULATIVE HIGHSCORE:</span>
+                <span class="value text-white" id="profileHighscore">00000</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Badges Panel -->
+          <div class="cyber-card border-pink shadow-pink">
+            <h3 class="font-heading text-pink" style="margin-bottom:14px;">ACQUIRED SECURITY BADGES</h3>
+            <div class="badge-gallery" id="profileBadgeGallery">
+              <!-- Room 1 Badge -->
+              <div class="badge-item locked" id="badgeItem1">
+                <div class="badge-icon">🎣</div>
+                <div class="badge-title">Phishing Spotter</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 2 Badge -->
+              <div class="badge-item locked" id="badgeItem2">
+                <div class="badge-icon">🔑</div>
+                <div class="badge-title">Password Guru</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 3 Badge -->
+              <div class="badge-item locked" id="badgeItem3">
+                <div class="badge-icon">🛡️</div>
+                <div class="badge-title">Crypto Specialist</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+      
+      <!-- ================= 6. VIEW: MOCK LEADERBOARD ================= -->
+      <section class="game-view" id="view-leaderboard">
+        <div class="view-header">
+          <h2 class="font-heading text-cyan">// GLOBAL SPEEDRUN MAINFRAME</h2>
+          <p class="text-muted" style="font-size:12px;">Top active specialists rated by escape speed, XP accumulation, and decryption accuracy scores.</p>
+        </div>
+        
+        <div class="leaderboard-table-card">
+          <table class="cyber-table">
+            <thead>
+              <tr>
+                <th>RANK</th>
+                <th>SPECIALIST</th>
+                <th>LVL</th>
+                <th>ROOMS CLEAR</th>
+                <th>TIME RECORD</th>
+                <th>HIGHSCORE</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Populated dynamically with high fidelity entries -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+      
+      <!-- ================= 7. VIEW: MOCK CLASSROOM PORTAL ================= -->
+      <section class="game-view" id="view-classroom">
+        <div class="view-header">
+          <h2 class="font-heading text-cyan">// EDUCATOR NODE & CLASSROOM PORTAL</h2>
+          <p class="text-muted" style="font-size:12px;">Teachers create secure groups, assign syllabus rooms, and view real-time student decryption metrics.</p>
+        </div>
+        
+        <div class="classroom-layout-grid">
+          
+          <div class="cyber-card border-amber shadow-amber">
+            <h3 class="font-heading text-amber" style="margin-bottom:12px;">JOIN CLASSROOM NET</h3>
+            <div class="form-group flex-row">
+              <input type="text" id="classCodeInput" class="custom-input" placeholder="Enter join code (e.g. SEC-101)..." />
+              <button class="cyber-btn border-amber glow-amber" id="joinClassBtn">ESTABLISH LINK</button>
+            </div>
+            <div class="active-class-status" id="activeClassStatus" style="margin-top:14px; color:var(--text-muted); font-size:12px;">
+              Not connected to an educator server node. Play as Guest or create custom speedrun trials!
+            </div>
+          </div>
+          
+          <div class="cyber-card border-green shadow-green">
+            <h3 class="font-heading text-green" style="margin-bottom:12px;">EDUCATOR TELEMETRY DASHBOARD</h3>
+            <p class="body-text" style="font-size:12.5px;">Are you a school instructor? Register an educator node to issue licenses, view completion analytics, and curriculum alignment statistics.</p>
+            
+            <div class="classroom-mock-list">
+              <div class="telemetry-item">
+                <span class="t-class">SEC-202 (Intro to Cybersecurity)</span>
+                <span class="t-students">18 Active Specialists</span>
+                <span class="t-completions">84% Completion Ratio</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="t-class">COMP-101 (Computer Core Systems)</span>
+                <span class="t-students">34 Active Specialists</span>
+                <span class="t-completions">91% Completion Ratio</span>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Game Codebase Scripts -->
+  <script src="assets/js/puzzles.js"></script>
+  <script src="assets/js/game.js"></script>
+</body>
+</html>
