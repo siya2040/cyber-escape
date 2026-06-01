@@ -1,19 +1,28 @@
 const supabaseUrl = "https://tdcpbvuusudpzpycodtf.supabase.co";
 
-const supabaseKey = "sb_publishable_JzTeIkheMuix-QBci5JpEg_IgWpvCYw";
+const supabaseKey = "sb_publishable_JzTeIkheMuix-QBci5JpEg_IgWpvCYw
+";
 
 const supabaseClient = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
+    supabaseUrl,
+    supabaseKey
 );
 
-async function testSupabase() {
-  const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("*");
+async function testInsert() {
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+    const { data, error } = await supabaseClient
+        .from("profiles")
+        .insert([
+            {
+                username: "Siya",
+                xp: 100,
+                level: 1,
+                score: 500
+            }
+        ]);
+
+    console.log(data);
+    console.log(error);
 }
 
-testSupabase();
+testInsert();
