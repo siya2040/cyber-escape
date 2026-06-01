@@ -16,13 +16,12 @@ async function testInsert() {
             {
                 username: "Siya",
                 xp: 100,
-                level: 1,
-                score: 500
+                level: 1
             }
         ]);
 
-    console.log(data);
-    console.log(error);
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 }
 
 testInsert();
