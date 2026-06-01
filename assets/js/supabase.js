@@ -6,3 +6,4 @@ const supabaseClient = supabase.createClient(
     supabaseUrl,
     supabaseKey
 );
+console.log("Supabase Connected:", window.supabaseClient);
