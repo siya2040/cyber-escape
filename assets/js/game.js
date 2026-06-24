@@ -48,25 +48,48 @@
     /**
      * Boot up the game engines and hook navigation clicks
      */
-    init: function() {
+    init: async function() {
       // Check for active session and restore
       const activeUser = this.getActiveSession();
-      const profiles = this.loadProfiles();
       
-      if (activeUser && profiles[activeUser]) {
-        const prof = profiles[activeUser];
-        this.state.username = activeUser;
-        this.state.level = prof.level || 1;
-        this.state.xp = prof.xp || 0;
-        this.state.maxXp = prof.maxXp || 500;
-        this.state.score = prof.score || 0;
-        this.state.completedRooms = prof.completedRooms || [];
-        this.state.badges = prof.badges || [];
-        this.state.roomTimes = prof.roomTimes || {};
-        this.state.classroomLinked = prof.classroomLinked || false;
-        this.state.classroomCode = prof.classroomCode || "";
+      if (activeUser && activeUser !== "SPECIALIST_GUEST" && activeUser !== "GUEST_PLAYER") {
+        try {
+          const prof = await this.loadProfile(activeUser);
+          if (prof) {
+            this.state.username = activeUser;
+            this.state.level = prof.level || 1;
+            this.state.xp = prof.xp || 0;
+            this.state.maxXp = prof.maxxp || 500;
+            this.state.score = prof.score || 0;
+            this.state.completedRooms = prof.completedrooms || [];
+            this.state.badges = prof.badges || [];
+            this.state.roomTimes = prof.roomtimes || {};
+            this.state.classroomLinked = prof.classroomlinked || false;
+            this.state.classroomCode = prof.classroomcode || "";
+            
+            // Auto-route to map hub on active session restoration
+            setTimeout(() => {
+              this.switchView("map");
+            }, 100);
+          } else {
+            this.clearActiveSession();
+          }
+        } catch (err) {
+          console.error("Failed to restore session from Supabase:", err);
+          this.clearActiveSession();
+        }
+      } else if (activeUser === "SPECIALIST_GUEST") {
+        this.state.username = "SPECIALIST_GUEST";
+        this.state.level = 1;
+        this.state.xp = 0;
+        this.state.maxXp = 500;
+        this.state.score = 0;
+        this.state.completedRooms = [];
+        this.state.badges = [];
+        this.state.roomTimes = {};
+        this.state.classroomLinked = false;
+        this.state.classroomCode = "";
         
-        // Auto-route to map hub on active session restoration
         setTimeout(() => {
           this.switchView("map");
         }, 100);
@@ -99,7 +122,7 @@
       // 3. Render base components
       this.updateLandingAuthState();
       this.updateHud();
-      this.renderLeaderboard();
+      await this.renderLeaderboard();
       
       // Auto-toggle Scanline overlays on bootup
       document.body.classList.add("scanlines-active");
@@ -196,24 +219,6 @@
     /* ==========================================================================
        LOCALSTORAGE PERSISTENCE HELPERS
        ========================================================================== */
-    loadProfiles: function() {
-      try {
-        const data = localStorage.getItem("cyber_escape_profiles");
-        return data ? JSON.parse(data) : {};
-      } catch (e) {
-        console.error("Failed to parse local cyber escape profiles:", e);
-        return {};
-      }
-    },
-
-    saveProfiles: function(profiles) {
-      try {
-        localStorage.setItem("cyber_escape_profiles", JSON.stringify(profiles));
-      } catch (e) {
-        console.error("Failed to save local cyber escape profiles:", e);
-      }
-    },
-
     getActiveSession: function() {
       return localStorage.getItem("cyber_escape_active_session");
     },
@@ -226,28 +231,148 @@
       localStorage.removeItem("cyber_escape_active_session");
     },
 
-    saveCurrentProgress: function() {
+    /**
+     * Helper to load a profile from Supabase by username
+     * @param {string} username 
+     * @returns {Promise<Object|null>}
+     */
+    loadProfile: async function(username) {
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('username', username)
+          .single();
+        
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // Row not found
+            return null;
+          }
+          throw error;
+        }
+        return data;
+      } catch (err) {
+        console.error(`Failed to load profile for ${username}:`, err);
+        throw err;
+      }
+    },
+
+    /**
+     * Helper to save/update a profile in Supabase
+     * @param {Object} profile 
+     * @returns {Promise<Object>}
+     */
+    saveProfile: async function(profile) {
+      try {
+        const payload = {
+          username: profile.username,
+          passcode: profile.passcode,
+          xp: profile.xp,
+          level: profile.level,
+          score: profile.score,
+          maxxp: profile.maxXp || profile.maxxp,
+          completedrooms: profile.completedRooms || profile.completedrooms,
+          badges: profile.badges,
+          roomtimes: profile.roomTimes || profile.roomtimes,
+          classroomlinked: profile.classroomLinked || profile.classroomlinked,
+          classroomcode: profile.classroomCode || profile.classroomcode
+        };
+
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .update(payload)
+          .eq('username', profile.username)
+          .select();
+
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error(`Failed to save profile for ${profile.username}:`, err);
+        throw err;
+      }
+    },
+
+    /**
+     * Helper to register a new profile in Supabase
+     * @param {Object} profile 
+     * @returns {Promise<Object>}
+     */
+    registerProfile: async function(profile) {
+      try {
+        const payload = {
+          username: profile.username,
+          passcode: profile.passcode,
+          xp: profile.xp || 0,
+          level: profile.level || 1,
+          score: profile.score || 0,
+          maxxp: profile.maxXp || profile.maxxp || 500,
+          completedrooms: profile.completedRooms || profile.completedrooms || [],
+          badges: profile.badges || [],
+          roomtimes: profile.roomTimes || profile.roomtimes || {},
+          classroomlinked: profile.classroomLinked || profile.classroomlinked || false,
+          classroomcode: profile.classroomCode || profile.classroomcode || ""
+        };
+
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .insert([payload])
+          .select();
+
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error(`Failed to register profile for ${profile.username}:`, err);
+        throw err;
+      }
+    },
+
+    /**
+     * Helper to authenticate a username and passcode against Supabase
+     * @param {string} username 
+     * @param {string} passcode 
+     * @returns {Promise<Object>}
+     */
+    authenticateProfile: async function(username, passcode) {
+      try {
+        const profile = await this.loadProfile(username);
+        if (!profile) {
+          return { success: false, reason: "username_not_found" };
+        }
+        if (profile.passcode !== passcode) {
+          return { success: false, reason: "invalid_passcode" };
+        }
+        return { success: true, profile: profile };
+      } catch (err) {
+        console.error(`Authentication error for ${username}:`, err);
+        throw err;
+      }
+    },
+
+    saveCurrentProgress: async function() {
       const username = this.state.username;
       if (!username || username === "GUEST_PLAYER" || username === "SPECIALIST_GUEST") {
         return; // Don't persist guest progress
       }
       
-      const profiles = this.loadProfiles();
-      if (!profiles[username]) {
-        profiles[username] = {};
+      try {
+        const payload = {
+          username: username,
+          level: this.state.level,
+          xp: this.state.xp,
+          maxXp: this.state.maxXp,
+          score: this.state.score,
+          completedRooms: this.state.completedRooms,
+          badges: this.state.badges,
+          roomTimes: this.state.roomTimes,
+          classroomLinked: this.state.classroomLinked,
+          classroomCode: this.state.classroomCode
+        };
+        
+        await this.saveProfile(payload);
+      } catch (err) {
+        console.error("Failed to save progress to Supabase:", err);
       }
-      
-      profiles[username].level = this.state.level;
-      profiles[username].xp = this.state.xp;
-      profiles[username].maxXp = this.state.maxXp;
-      profiles[username].score = this.state.score;
-      profiles[username].completedRooms = this.state.completedRooms;
-      profiles[username].badges = this.state.badges;
-      profiles[username].roomTimes = this.state.roomTimes;
-      profiles[username].classroomLinked = this.state.classroomLinked;
-      profiles[username].classroomCode = this.state.classroomCode;
-      
-      this.saveProfiles(profiles);
     },
 
     /* ==========================================================================
@@ -263,7 +388,7 @@
       if (usernameInput && passwordInput) {
         // SIGN IN
         if (loginBtn) {
-          loginBtn.addEventListener("click", () => {
+          loginBtn.addEventListener("click", async () => {
             const userVal = usernameInput.value.trim().toUpperCase();
             const passVal = passwordInput.value.trim();
 
@@ -277,49 +402,61 @@
               return;
             }
 
-            const profiles = this.loadProfiles();
-            const prof = profiles[userVal];
+            try {
+              if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
+                window.CyberPuzzles.updateSimbaDialog(`"Checking database credentials... Please wait."`, "normal");
+              }
 
-            if (!prof) {
-              const msg = `"Authentication failure: Hacker codename not found in database!"`;
+              const authResult = await this.authenticateProfile(userVal, passVal);
+
+              if (!authResult.success) {
+                let msg = "";
+                if (authResult.reason === "username_not_found") {
+                  msg = `"Authentication failure: Hacker codename not found in database!"`;
+                } else if (authResult.reason === "invalid_passcode") {
+                  msg = `"Authentication failure: Invalid decryption credentials!"`;
+                } else {
+                  msg = `"Authentication failure: Access denied."`;
+                }
+                if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
+                  window.CyberPuzzles.updateSimbaDialog(msg, "error");
+                }
+                const landingDialogue = document.getElementById("landingDialogue");
+                if (landingDialogue) landingDialogue.innerHTML = msg;
+                return;
+              }
+
+              const prof = authResult.profile;
+
+              // Restore player progress states
+              this.state.username = userVal;
+              this.state.level = prof.level || 1;
+              this.state.xp = prof.xp || 0;
+              this.state.maxXp = prof.maxxp || 500;
+              this.state.score = prof.score || 0;
+              this.state.completedRooms = prof.completedrooms || [];
+              this.state.badges = prof.badges || [];
+              this.state.roomTimes = prof.roomtimes || {};
+              this.state.classroomLinked = prof.classroomlinked || false;
+              this.state.classroomCode = prof.classroomcode || "";
+
+              this.setActiveSession(userVal);
+              await this.loginSuccess(false);
+            } catch (err) {
+              console.error("Sign in error:", err);
+              const msg = `"Database link offline! Meow! Failed to connect to identity mainframe."`;
               if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
                 window.CyberPuzzles.updateSimbaDialog(msg, "error");
               }
               const landingDialogue = document.getElementById("landingDialogue");
               if (landingDialogue) landingDialogue.innerHTML = msg;
-              return;
             }
-
-            if (prof.passcode !== passVal) {
-              const msg = `"Authentication failure: Invalid decryption credentials!"`;
-              if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
-                window.CyberPuzzles.updateSimbaDialog(msg, "error");
-              }
-              const landingDialogue = document.getElementById("landingDialogue");
-              if (landingDialogue) landingDialogue.innerHTML = msg;
-              return;
-            }
-
-            // Restore player progress states
-            this.state.username = userVal;
-            this.state.level = prof.level || 1;
-            this.state.xp = prof.xp || 0;
-            this.state.maxXp = prof.maxXp || 500;
-            this.state.score = prof.score || 0;
-            this.state.completedRooms = prof.completedRooms || [];
-            this.state.badges = prof.badges || [];
-            this.state.roomTimes = prof.roomTimes || {};
-            this.state.classroomLinked = prof.classroomLinked || false;
-            this.state.classroomCode = prof.classroomCode || "";
-
-            this.setActiveSession(userVal);
-            this.loginSuccess(false);
           });
         }
 
         // REGISTER
         if (registerBtn) {
-          registerBtn.addEventListener("click", () => {
+          registerBtn.addEventListener("click", async () => {
             const userVal = usernameInput.value.trim().toUpperCase();
             const passVal = passwordInput.value.trim();
 
@@ -343,53 +480,68 @@
               return;
             }
 
-            const profiles = this.loadProfiles();
-            if (profiles[userVal]) {
-              const msg = `"Codename override detected! 😾 This hacker ID is already registered in our active database. Please sign in instead!"`;
+            try {
               if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
-                window.CyberPuzzles.updateSimbaDialog(msg, "alert");
+                window.CyberPuzzles.updateSimbaDialog(`"Checking username availability... Please wait."`, "normal");
+              }
+
+              const existingProfile = await this.loadProfile(userVal);
+              if (existingProfile) {
+                const msg = `"Codename override detected! 😾 This hacker ID is already registered in our active database. Please sign in instead!"`;
+                if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
+                  window.CyberPuzzles.updateSimbaDialog(msg, "alert");
+                }
+                const landingDialogue = document.getElementById("landingDialogue");
+                if (landingDialogue) landingDialogue.innerHTML = msg;
+                return;
+              }
+
+              // Create new hacker profile
+              const newProfile = {
+                username: userVal,
+                passcode: passVal,
+                level: 1,
+                xp: 0,
+                maxXp: 500,
+                score: 0,
+                completedRooms: [],
+                badges: [],
+                roomTimes: {},
+                classroomLinked: false,
+                classroomCode: ""
+              };
+
+              await this.registerProfile(newProfile);
+
+              // Log in instantly
+              this.state.username = userVal;
+              this.state.level = 1;
+              this.state.xp = 0;
+              this.state.maxXp = 500;
+              this.state.score = 0;
+              this.state.completedRooms = [];
+              this.state.badges = [];
+              this.state.roomTimes = {};
+              this.state.classroomLinked = false;
+              this.state.classroomCode = "";
+
+              this.setActiveSession(userVal);
+              await this.loginSuccess(true);
+            } catch (err) {
+              console.error("Registration error:", err);
+              const msg = `"Database link offline! Meow! Failed to write identity node to mainframe."`;
+              if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
+                window.CyberPuzzles.updateSimbaDialog(msg, "error");
               }
               const landingDialogue = document.getElementById("landingDialogue");
               if (landingDialogue) landingDialogue.innerHTML = msg;
-              return;
             }
-
-            // Create new hacker profile
-            profiles[userVal] = {
-              passcode: passVal,
-              level: 1,
-              xp: 0,
-              maxXp: 500,
-              score: 0,
-              completedRooms: [],
-              badges: [],
-              roomTimes: {},
-              classroomLinked: false,
-              classroomCode: ""
-            };
-
-            this.saveProfiles(profiles);
-
-            // Log in instantly
-            this.state.username = userVal;
-            this.state.level = 1;
-            this.state.xp = 0;
-            this.state.maxXp = 500;
-            this.state.score = 0;
-            this.state.completedRooms = [];
-            this.state.badges = [];
-            this.state.roomTimes = {};
-            this.state.classroomLinked = false;
-            this.state.classroomCode = "";
-
-            this.setActiveSession(userVal);
-            this.loginSuccess(true);
           });
         }
       }
 
       if (guestBtn) {
-        guestBtn.addEventListener("click", () => {
+        guestBtn.addEventListener("click", async () => {
           this.state.username = "SPECIALIST_GUEST";
           this.state.level = 1;
           this.state.xp = 0;
@@ -401,7 +553,8 @@
           this.state.classroomLinked = false;
           this.state.classroomCode = "";
           
-          this.loginSuccess(false);
+          this.setActiveSession("SPECIALIST_GUEST");
+          await this.loginSuccess(false);
         });
       }
     },
@@ -409,9 +562,9 @@
     bindLogoutEvent: function() {
       const logoutBtn = document.getElementById("navBtnLogout");
       if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
+        logoutBtn.addEventListener("click", async () => {
           // Save current progress before logging out
-          this.saveCurrentProgress();
+          await this.saveCurrentProgress();
 
           // Wipe active session
           this.clearActiveSession();
@@ -436,7 +589,7 @@
 
           // Render updates
           this.updateHud();
-          this.renderLeaderboard();
+          await this.renderLeaderboard();
 
           // Switch to landing splash view
           this.switchView("landing");
@@ -457,10 +610,10 @@
       }
     },
 
-    loginSuccess: function(isNewRegistration = false) {
+    loginSuccess: async function(isNewRegistration = false) {
       this.updateLandingAuthState();
       this.updateHud();
-      this.renderLeaderboard();
+      await this.renderLeaderboard();
       
       // Update dialogue greeting
       const landingDialogue = document.getElementById("landingDialogue");
@@ -829,69 +982,88 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
     /* ==========================================================================
        MOCK LEADERBOARD ENGINE
        ========================================================================== */
-    renderLeaderboard: function() {
+    renderLeaderboard: async function() {
       const tbody = document.getElementById("leaderboardBody");
       if (!tbody) return;
       
-      tbody.innerHTML = "";
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Loading mainframe rankings...</td></tr>`;
       
-      // Build updated rankings list including player and other registered profiles
-      let recordsList = [...this.leaderboardData];
-      
-      // Load all other registered profiles
-      const profiles = this.loadProfiles();
-      Object.keys(profiles).forEach(user => {
-        // Skip current player since we add them separately with "(YOU)"
-        if (user === this.state.username) return;
+      try {
+        const { data: profiles, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .order('score', { ascending: false });
+
+        if (error) throw error;
+
+        tbody.innerHTML = "";
         
-        const prof = profiles[user];
-        if (prof.score > 0 || prof.completedRooms.length > 0) {
-          recordsList.push({
-            name: user,
-            lvl: prof.level || 1,
-            cleared: `${(prof.completedRooms || []).length} / 10`,
-            time: Object.values(prof.roomTimes || {})[0] || "--:--.--",
-            score: prof.score || 0,
-            isPlayer: false
+        // Build updated rankings list including player and other registered profiles
+        let recordsList = [...this.leaderboardData];
+        
+        if (profiles) {
+          profiles.forEach(prof => {
+            // Skip current player since we add them separately with "(YOU)"
+            if (prof.username === this.state.username) return;
+            
+            const completedRoomsArr = Array.isArray(prof.completedrooms) ? prof.completedrooms : [];
+            const roomTimesObj = (prof.roomtimes && typeof prof.roomtimes === 'object') ? prof.roomtimes : {};
+            
+            if (prof.score > 0 || completedRoomsArr.length > 0) {
+              recordsList.push({
+                name: prof.username,
+                lvl: prof.level || 1,
+                cleared: `${completedRoomsArr.length} / 10`,
+                time: Object.values(roomTimesObj)[0] || "--:--.--",
+                score: prof.score || 0,
+                isPlayer: false
+              });
+            }
           });
         }
-      });
-      
-      const playerRecord = {
-        name: `${this.state.username} (YOU)`,
-        lvl: this.state.level,
-        cleared: `${this.state.completedRooms.length} / 10`,
-        time: Object.values(this.state.roomTimes)[0] || "--:--.--",
-        score: this.state.score,
-        isPlayer: true
-      };
+        
+        const playerRecord = {
+          name: `${this.state.username} (YOU)`,
+          lvl: this.state.level,
+          cleared: `${this.state.completedRooms.length} / 10`,
+          time: Object.values(this.state.roomTimes)[0] || "--:--.--",
+          score: this.state.score,
+          isPlayer: true
+        };
 
-      // Add player if they have completed a room or have points
-      if (this.state.score > 0 || this.state.completedRooms.length > 0) {
-        recordsList.push(playerRecord);
-      }
-
-      // Sort by score (descending)
-      recordsList.sort((a, b) => b.score - a.score);
-      
-      // Render
-      recordsList.forEach((entry, idx) => {
-        const row = document.createElement("tr");
-        if (entry.isPlayer) {
-          row.className = "highlighted";
+        // Add player if they have completed a room or have points and are not guest
+        if (this.state.username && this.state.username !== "GUEST_PLAYER" && (this.state.score > 0 || this.state.completedRooms.length > 0)) {
+          const playerExistsInList = recordsList.some(r => r.isPlayer || r.name.replace(" (YOU)", "") === this.state.username);
+          if (!playerExistsInList) {
+            recordsList.push(playerRecord);
+          }
         }
+
+        // Sort by score (descending)
+        recordsList.sort((a, b) => b.score - a.score);
         
-        row.innerHTML = `
-          <td class="font-heading ${idx < 3 ? 'text-pink' : ''}">${idx + 1}</td>
-          <td class="${entry.isPlayer ? 'text-cyan' : 'text-white'}">${entry.name}</td>
-          <td>${entry.lvl}</td>
-          <td>${entry.cleared}</td>
-          <td class="font-heading text-amber">${entry.time}</td>
-          <td class="font-heading text-green">${entry.score}</td>
-        `;
-        
-        tbody.appendChild(row);
-      });
+        // Render
+        recordsList.forEach((entry, idx) => {
+          const row = document.createElement("tr");
+          if (entry.isPlayer) {
+            row.className = "highlighted";
+          }
+          
+          row.innerHTML = `
+            <td class="font-heading ${idx < 3 ? 'text-pink' : ''}">${idx + 1}</td>
+            <td class="${entry.isPlayer ? 'text-cyan' : 'text-white'}">${entry.name}</td>
+            <td>${entry.lvl}</td>
+            <td>${entry.cleared}</td>
+            <td class="font-heading text-amber">${entry.time}</td>
+            <td class="font-heading text-green">${entry.score}</td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Leaderboard fetch error:", err);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red">Failed to load rankings: ${err.message}</td></tr>`;
+      }
     },
 
     /* ==========================================================================
