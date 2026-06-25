@@ -263,11 +263,14 @@
      * @param {Object} profile 
      * @returns {Promise<Object>}
      */
+    /**
+     * Helper to save/update a profile in Supabase
+     * @param {Object} profile 
+     * @returns {Promise<Object>}
+     */
     saveProfile: async function(profile) {
       try {
         const payload = {
-          username: profile.username,
-          passcode: profile.passcode,
           xp: profile.xp,
           level: profile.level,
           score: profile.score,
@@ -279,11 +282,15 @@
           classroomcode: profile.classroomCode || profile.classroomcode
         };
 
+        console.log("Supabase saveProfile: Executing update query for user:", profile.username, "with payload:", payload);
+
         const { data, error } = await window.supabaseClient
           .from('profiles')
           .update(payload)
           .eq('username', profile.username)
           .select();
+
+        console.log("Supabase saveProfile result - Data:", data, "Error:", error);
 
         if (error) throw error;
         return data;
@@ -355,6 +362,8 @@
         return; // Don't persist guest progress
       }
       
+      console.log("saveCurrentProgress: Initiating save flow for user:", username);
+      
       try {
         const payload = {
           username: username,
@@ -366,10 +375,11 @@
           badges: this.state.badges,
           roomTimes: this.state.roomTimes,
           classroomLinked: this.state.classroomLinked,
-          classroomCode: this.state.classroomCode
+          classroomcode: this.state.classroomCode
         };
         
         await this.saveProfile(payload);
+        console.log("saveCurrentProgress: Save flow completed successfully.");
       } catch (err) {
         console.error("Failed to save progress to Supabase:", err);
       }
