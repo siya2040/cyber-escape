@@ -496,6 +496,71 @@
             </div>
           </div>
           
+          <!-- ================= PUZZLE 4: MALWARE LAB ================= -->
+          <div class="puzzle-view" id="puzzle-malware">
+            <div class="malware-game-layout">
+              <div class="process-sidebar">
+                <div class="inbox-title">&gt;_ ACTIVE PROCESSES</div>
+                <div class="process-list" id="malwareProcessList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="process-details-panel">
+                <div class="process-header-card">
+                  <div class="meta-row">
+                    <span class="key">PROCESS:</span>
+                    <span class="val text-white" id="procNameDisplay">winupdates.exe</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">PATH:</span>
+                    <span class="val text-pink" id="procPathDisplay">C:\Users\Temp\AppData\Local\winupdates.exe</span>
+                  </div>
+                </div>
+                
+                <div class="process-body-content" id="procDescription">
+                  Process analysis loading...
+                </div>
+                
+                <div class="process-decision-footer">
+                  <button class="cyber-btn border-green glow-green flex-1" id="allowProcessBtn">ALLOW RUN OVERRIDE</button>
+                  <button class="cyber-btn border-red glow-red flex-1" id="killProcessBtn">QUARANTINE & KILL</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 5: MFA DATABASE ================= -->
+          <div class="puzzle-view" id="puzzle-mfa">
+            <div class="mfa-game-layout">
+              <div class="mfa-fatigue-panel">
+                <div class="inbox-title" style="border-bottom: 1px solid rgba(0, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 8px;">&gt;_ PUSH VERIFICATIONS</div>
+                <div class="mfa-notification-list" id="mfaNotificationList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="mfa-sync-panel">
+                <div class="mfa-sync-lock-status text-pink" id="mfaSyncStatusLabel">SYNC REQUIRED</div>
+                
+                <div class="mfa-sync-formula-box">
+                  <div class="text-white" style="margin-bottom: 4px;">TIME TOKEN FORMULA:</div>
+                  <code>MFA_CODE = SEED + SYSTEM_SECONDS</code>
+                  <div style="margin-top: 6px;">
+                    SEED: <strong class="text-cyan" id="mfaSeedVal">7240</strong><br>
+                    SECONDS: <strong class="text-pink" id="mfaSecondsVal">48</strong>
+                  </div>
+                </div>
+                
+                <div class="mfa-sync-input-group">
+                  <input type="text" id="mfaSyncInput" class="terminal-input text-center" placeholder="Enter 4-digit code..." style="font-size: 16px; letter-spacing: 2px;" maxlength="6" disabled />
+                </div>
+                
+                <button class="cyber-btn border-pink glow-pink" style="width: 100%;" id="submitMfaSyncBtn" disabled>SYNC TO DATABASE</button>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </section>
       
@@ -592,6 +657,20 @@
               <div class="badge-item locked" id="badgeItem3">
                 <div class="badge-icon">🛡️</div>
                 <div class="badge-title">Crypto Specialist</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 4 Badge -->
+              <div class="badge-item locked" id="badgeItem4">
+                <div class="badge-icon">🦠</div>
+                <div class="badge-title">Malware Analyst</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 5 Badge -->
+              <div class="badge-item locked" id="badgeItem5">
+                <div class="badge-icon">🔐</div>
+                <div class="badge-title">MFA Administrator</div>
                 <div class="badge-date">LOCKED</div>
               </div>
             </div>

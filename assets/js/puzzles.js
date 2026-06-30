@@ -63,6 +63,84 @@
       correctShift: 25 // Uifsf shifted by 25 (which is -1) is 'There'
     },
 
+    // Room 4: Malware Lab State
+    malwareState: {
+      processes: [
+        {
+          id: 1,
+          name: "winupdates.exe",
+          path: "C:\\Users\\Temp\\AppData\\Local\\winupdates.exe",
+          description: "Windows System Update Simulation. Signature Check: UNSIGNED. Heavy registry writing behavior detected! Attempting bulk file encryption on User Documents node and requesting root-level system admin tokens. Telemetry highlights outgoing socket requests to command-and-control IP 45.9.110.2.",
+          isMalware: true,
+          audited: false,
+          hint: "Windows updates run from C:\\Windows\\System32 as signed packages. Running from AppData\\Local and encrypting files are signs of trojan ransomware!"
+        },
+        {
+          id: 2,
+          name: "svchost.exe",
+          path: "C:\\Windows\\System32\\svchost.exe",
+          description: "Microsoft Service Host Core Node. Signature Check: SIGNED BY MICROSOFT OS AUTHORITY. Standard operating system component executing dynamic-link libraries (.dll services). Telemetry outlines normal memory load (14.2MB) and zero suspicious socket outbound traffic.",
+          isMalware: false,
+          audited: false,
+          hint: "This is a legitimate system process signed by Microsoft and residing in the standard System32 library node. Wiping it would crash the simulator console!"
+        },
+        {
+          id: 3,
+          name: "monero_miner.exe",
+          path: "C:\\Users\\Public\\Downloads\\monero_miner.exe",
+          description: "Unsigned mathematical calculations application. Signature Check: UNSIGNED. Telemetry indicates 99.4% CPU resource consumption. Network connection active to external cryptocurrency mining pool at port 4444.",
+          isMalware: true,
+          audited: false,
+          hint: "An unsigned miner executing from public directories, hogging 99% of your CPU resources, is a clear cryptojacking Trojan threat!"
+        },
+        {
+          id: 4,
+          name: "chrome.exe",
+          path: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+          description: "Google Chrome Application. Signature Check: SIGNED BY GOOGLE LLC. Standard web navigation sandbox utility. Memory footprint is high (420MB) but operates safely under sandboxed user permissions.",
+          isMalware: false,
+          audited: false,
+          hint: "This is a verified web browser binary signed by Google LLC operating under standard sandboxed permissions. It is safe to allow!"
+        }
+      ],
+      selectedId: 1
+    },
+
+    // Room 5: MFA Database State
+    mfaState: {
+      notifications: [
+        {
+          id: 1,
+          location: "Moscow, Russia",
+          device: "Firefox / Linux Node (Curl client)",
+          timestamp: "Just Now",
+          isMalicious: true,
+          audited: false
+        },
+        {
+          id: 2,
+          location: "Local Terminal Hub (You)",
+          device: "Chrome / Windows Specialist Console",
+          timestamp: "2 mins ago",
+          isMalicious: false,
+          audited: false
+        },
+        {
+          id: 3,
+          location: "Beijing, China",
+          device: "Python scripting payload",
+          timestamp: "5 mins ago",
+          isMalicious: true,
+          audited: false
+        }
+      ],
+      seed: 7240,
+      seconds: 48,
+      otpTimerInterval: null,
+      isFatigueCleared: false,
+      isSyncCleared: false
+    },
+
     /**
      * Set up listeners and references
      */
@@ -70,6 +148,8 @@
       this.bindPhishingEvents();
       this.bindPasswordEvents();
       this.bindCipherEvents();
+      this.bindMalwareEvents();
+      this.bindMfaEvents();
     },
 
     /**
@@ -91,6 +171,12 @@
       } else if (roomNum === 3) {
         document.getElementById("puzzle-cipher").classList.add("active");
         this.resetCipherGame();
+      } else if (roomNum === 4) {
+        document.getElementById("puzzle-malware").classList.add("active");
+        this.resetMalwareGame();
+      } else if (roomNum === 5) {
+        document.getElementById("puzzle-mfa").classList.add("active");
+        this.resetMfaGame();
       }
     },
 
@@ -140,6 +226,17 @@
         this.updateSimbaDialog(`"Meow! Combine at least 12 characters, uppercase letters, lowercase, digits, and a special character (like @, #, $, %) to crack the entropy shield!"`, "alert");
       } else if (this.currentRoom === 3) {
         this.updateSimbaDialog(`"Meow! Slide the offset key to match letter indices. Since 'U' is shifted by 1 letter from 'T', we need to offset the entire message backwards. Try looking at shifts around 23 to 25!"`, "alert");
+      } else if (this.currentRoom === 4) {
+        const activeProc = this.malwareState.processes.find(p => p.id === this.malwareState.selectedId);
+        if (activeProc) {
+          this.updateSimbaDialog(`"Meow! Here is a process analysis hint: ${activeProc.hint}"`, "alert");
+        }
+      } else if (this.currentRoom === 5) {
+        if (!this.mfaState.isFatigueCleared) {
+          this.updateSimbaDialog(`"Meow! Block any MFA pushes coming from locations or devices you don't recognize. Only approve logins you initiated!"`, "alert");
+        } else {
+          this.updateSimbaDialog(`"Meow! Calculate the 2FA token using the formula. Take the SEED value and add the current dynamic SYSTEM_SECONDS. Put the sum in the sync terminal!"`, "alert");
+        }
       }
     },
 
@@ -533,6 +630,329 @@
         
         return char;
       }).join('');
+    },
+
+    /* ==========================================================================
+       ROOM 4: MALWARE LAB LOGIC
+       ========================================================================== */
+    resetMalwareGame: function() {
+      this.malwareState.processes.forEach(p => p.audited = false);
+      this.malwareState.selectedId = 1;
+      
+      this.renderProcessList();
+      this.selectProcess(1);
+      
+      this.updateSimbaDialog(`"Ransomware alert! 😾 Rogue processes are trying to decrypt and corrupt our memory bank. Inspect the active processes in the left sidebar and quarantine the malware!"`, "normal");
+    },
+
+    renderProcessList: function() {
+      const listEl = document.getElementById("malwareProcessList");
+      if (!listEl) return;
+      
+      listEl.innerHTML = "";
+      
+      this.malwareState.processes.forEach(proc => {
+        const item = document.createElement("div");
+        item.className = `process-item ${proc.id === this.malwareState.selectedId ? "active" : ""} ${proc.audited ? "cleared" : ""}`;
+        item.setAttribute("data-id", proc.id);
+        
+        let statusHtml = proc.audited 
+          ? `<span class="item-badge tag-green" style="font-size: 7px; padding: 2px 4px;">SECURED</span>`
+          : `<span class="item-badge tag-pink" style="font-size: 7px; padding: 2px 4px;">UNAUDITED</span>`;
+          
+        item.innerHTML = `
+          <div class="proc-name">${proc.name}</div>
+          <div class="proc-status">
+            <span style="font-size: 8px; color: var(--text-muted);">ID: 0${proc.id}</span>
+            ${statusHtml}
+          </div>
+        `;
+        
+        item.addEventListener("click", () => {
+          this.selectProcess(proc.id);
+        });
+        
+        listEl.appendChild(item);
+      });
+    },
+
+    selectProcess: function(id) {
+      this.malwareState.selectedId = id;
+      
+      const items = document.querySelectorAll(".process-item");
+      items.forEach(item => {
+        if (parseInt(item.getAttribute("data-id")) === id) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
+      
+      const proc = this.malwareState.processes.find(p => p.id === id);
+      if (!proc) return;
+      
+      document.getElementById("procNameDisplay").textContent = proc.name;
+      document.getElementById("procPathDisplay").textContent = proc.path;
+      document.getElementById("procDescription").textContent = proc.description;
+      
+      if (proc.audited) {
+        this.updateSimbaDialog(`"Process ${proc.name} has been successfully audited and isolated, Specialist! Good job!"`, "success");
+      } else {
+        this.updateSimbaDialog(`"Inspecting process 0${proc.id}: ${proc.name}... Check the signature, filepath, and behavior triggers. Allow or Quarantine?"`, "normal");
+      }
+    },
+
+    bindMalwareEvents: function() {
+      const allowBtn = document.getElementById("allowProcessBtn");
+      const killBtn = document.getElementById("killProcessBtn");
+      
+      if (allowBtn && killBtn) {
+        allowBtn.addEventListener("click", () => this.auditCurrentProcess(false));
+        killBtn.addEventListener("click", () => this.auditCurrentProcess(true));
+      }
+    },
+
+    auditCurrentProcess: function(chosenIsMalware) {
+      const proc = this.malwareState.processes.find(p => p.id === this.malwareState.selectedId);
+      if (!proc) return;
+      
+      if (proc.audited) {
+        this.updateSimbaDialog(`"This process node is already successfully resolved, Specialist."`, "success");
+        return;
+      }
+      
+      if (proc.isMalware === chosenIsMalware) {
+        proc.audited = true;
+        this.renderProcessList();
+        
+        if (window.CyberGame) {
+          window.CyberGame.addScore(100);
+          window.CyberGame.addXp(50);
+        }
+        
+        let successMsg = proc.isMalware
+          ? `"Purr! Excellent kill command! 😻 Process isolated and quarantined successfully. Malicious telemetry closed!"`
+          : `"Purr! Safe process allowed execution bypass. Essential system services remain operational!"`;
+          
+        this.updateSimbaDialog(successMsg, "success");
+        
+        const allAudited = this.malwareState.processes.every(p => p.audited);
+        if (allAudited) {
+          setTimeout(() => {
+            this.updateSimbaDialog(`"PURR! Memory sandbox secured! 😻 Ransomware Trojan components eliminated. Room 4 Cleared!"`, "success");
+            setTimeout(() => {
+              if (this.onCompleteCallback) this.onCompleteCallback();
+            }, 1800);
+          }, 1000);
+        }
+      } else {
+        if (window.CyberGame) {
+          window.CyberGame.addScore(-25);
+        }
+        
+        let errorMsg = proc.isMalware
+          ? `"MEOW! 😾 Letting that process run would initiate hard disk encryption! Spot the unsigned state and APP_DATA TEMP path!"`
+          : `"Oh no! 😼 Killing essential signed Windows services destabilizes the HUD! Review Microsoft certificate headers!"`;
+          
+        this.updateSimbaDialog(errorMsg, "error");
+      }
+    },
+
+    /* ==========================================================================
+       ROOM 5: MFA DATABASE LOGIC
+       ========================================================================== */
+    resetMfaGame: function() {
+      this.mfaState.isFatigueCleared = false;
+      this.mfaState.isSyncCleared = false;
+      this.mfaState.notifications.forEach(n => n.audited = false);
+      
+      this.mfaState.seed = Math.floor(1000 + Math.random() * 8000);
+      this.mfaState.seconds = Math.floor(10 + Math.random() * 45);
+      
+      // Update UI displays
+      document.getElementById("mfaSeedVal").textContent = this.mfaState.seed;
+      document.getElementById("mfaSecondsVal").textContent = this.mfaState.seconds;
+      
+      const syncInput = document.getElementById("mfaSyncInput");
+      const syncBtn = document.getElementById("submitMfaSyncBtn");
+      const statusLabel = document.getElementById("mfaSyncStatusLabel");
+      
+      if (syncInput) {
+        syncInput.value = "";
+        syncInput.disabled = true;
+      }
+      if (syncBtn) {
+        syncBtn.disabled = true;
+      }
+      if (statusLabel) {
+        statusLabel.textContent = "SYNC REQUIRED";
+        statusLabel.className = "mfa-sync-lock-status text-pink";
+      }
+      
+      this.renderMfaList();
+      this.startOtpTimer();
+      
+      this.updateSimbaDialog(`"MFA Fatigue Bombardment detected! 😾 Hackers are spamming Simba's console with approval requests. DENY the bad ones, and APPROVE your local session!"`, "normal");
+    },
+
+    renderMfaList: function() {
+      const listEl = document.getElementById("mfaNotificationList");
+      if (!listEl) return;
+      
+      listEl.innerHTML = "";
+      
+      this.mfaState.notifications.forEach(notif => {
+        const card = document.createElement("div");
+        card.className = `mfa-notification-card ${notif.audited ? "cleared" : ""}`;
+        card.setAttribute("data-id", notif.id);
+        
+        let actionButtons = "";
+        if (!notif.audited) {
+          actionButtons = `
+            <div class="mfa-card-actions">
+              <button class="cyber-btn border-green glow-green flex-1" style="font-size: 8px; padding: 4px;" onclick="window.CyberPuzzles.handleMfaFatigueAction(${notif.id}, true)">APPROVE</button>
+              <button class="cyber-btn border-red glow-red flex-1" style="font-size: 8px; padding: 4px;" onclick="window.CyberPuzzles.handleMfaFatigueAction(${notif.id}, false)">DENY</button>
+            </div>
+          `;
+        } else {
+          actionButtons = `
+            <div style="font-size: 8px; font-weight: bold; margin-top: 6px;" class="${notif.isMalicious ? "text-red" : "text-green"}">
+              ${notif.isMalicious ? "THREAT BLOCKED" : "ACCESS AUTHORIZED"}
+            </div>
+          `;
+        }
+        
+        card.innerHTML = `
+          <div class="mfa-card-header">
+            <span class="mfa-card-location">${notif.location}</span>
+            <span class="item-badge ${notif.isMalicious ? "tag-pink" : "tag-cyan"}" style="font-size: 7px;">${notif.timestamp}</span>
+          </div>
+          <div class="mfa-card-meta">
+            Device: <strong>${notif.device}</strong>
+          </div>
+          ${actionButtons}
+        `;
+        
+        card.style.textAlign = "left";
+        listEl.appendChild(card);
+      });
+    },
+
+    handleMfaFatigueAction: function(id, approveChosen) {
+      const notif = this.mfaState.notifications.find(n => n.id === id);
+      if (!notif) return;
+      
+      const shouldApprove = !notif.isMalicious;
+      
+      if (approveChosen === shouldApprove) {
+        notif.audited = true;
+        this.renderMfaList();
+        
+        if (window.CyberGame) {
+          window.CyberGame.addScore(100);
+        }
+        
+        let msg = approveChosen 
+          ? `"Purr! Authorized local console connection verified. Safe node online!"`
+          : `"Purr! Remote hijacking push notification denied. Threat neutralized!"`;
+        this.updateSimbaDialog(msg, "success");
+        
+        this.checkMfaFatigueCompletion();
+      } else {
+        if (window.CyberGame) {
+          window.CyberGame.addScore(-30);
+        }
+        
+        let errorMsg = approveChosen
+          ? `"MEOW! 😾 That push was a remote hijacking attempt! Never approve push notifications you did not initiate!"`
+          : `"Oh no! 😼 You blocked your own session! Specialist console link offline. Let's re-assess."`;
+        this.updateSimbaDialog(errorMsg, "error");
+      }
+    },
+
+    checkMfaFatigueCompletion: function() {
+      const allFatigueResolved = this.mfaState.notifications.every(n => n.audited);
+      if (allFatigueResolved) {
+        this.mfaState.isFatigueCleared = true;
+        
+        // Enable TOTP sync block
+        const syncInput = document.getElementById("mfaSyncInput");
+        const syncBtn = document.getElementById("submitMfaSyncBtn");
+        const statusLabel = document.getElementById("mfaSyncStatusLabel");
+        
+        if (syncInput) syncInput.disabled = false;
+        if (syncBtn) syncBtn.disabled = false;
+        if (statusLabel) {
+          statusLabel.textContent = "FATIGUE GUARD CLASSIFIED";
+          statusLabel.className = "mfa-sync-lock-status text-green";
+        }
+        
+        this.updateSimbaDialog(`"MFA Fatigue Bombardment neutralized! 😻 Now, look at the TOTP sync panel on the right. Solve the dynamic Time Token formula to authorize hardware gateway sync!"`, "success");
+      }
+    },
+
+    startOtpTimer: function() {
+      this.stopOtpTimer();
+      
+      this.mfaState.otpTimerInterval = setInterval(() => {
+        if (this.mfaState.seconds > 1) {
+          this.mfaState.seconds -= 1;
+          const secEl = document.getElementById("mfaSecondsVal");
+          if (secEl) secEl.textContent = this.mfaState.seconds;
+        } else {
+          // Regenerate new OTP values on expiry
+          this.mfaState.seconds = 30;
+          this.mfaState.seed = Math.floor(1000 + Math.random() * 8000);
+          
+          const seedEl = document.getElementById("mfaSeedVal");
+          const secEl = document.getElementById("mfaSecondsVal");
+          if (seedEl) seedEl.textContent = this.mfaState.seed;
+          if (secEl) secEl.textContent = this.mfaState.seconds;
+          
+          if (this.mfaState.isFatigueCleared) {
+            this.updateSimbaDialog(`"Time window expired! 😿 OTP seeds rotated. Check the new numbers and recalculate the formula!"`, "warn");
+          }
+        }
+      }, 1000);
+    },
+
+    stopOtpTimer: function() {
+      if (this.mfaState.otpTimerInterval) {
+        clearInterval(this.mfaState.otpTimerInterval);
+        this.mfaState.otpTimerInterval = null;
+      }
+    },
+
+    bindMfaEvents: function() {
+      const syncBtn = document.getElementById("submitMfaSyncBtn");
+      if (syncBtn) {
+        syncBtn.addEventListener("click", () => {
+          const inputVal = parseInt(document.getElementById("mfaSyncInput").value.trim());
+          const correctVal = this.mfaState.seed + this.mfaState.seconds;
+          
+          if (inputVal === correctVal) {
+            // SUCCESS!
+            this.stopOtpTimer();
+            
+            if (window.CyberGame) {
+              window.CyberGame.addScore(500);
+              window.CyberGame.addXp(200);
+            }
+            
+            this.updateSimbaDialog(`"PURR! MFA synchronization complete! 😻 Hardware tokens aligned and database secured. Escaping Room 5!"`, "success");
+            
+            setTimeout(() => {
+              if (this.onCompleteCallback) this.onCompleteCallback();
+            }, 1800);
+          } else {
+            // FAILED SYNC
+            if (window.CyberGame) {
+              window.CyberGame.addScore(-20);
+            }
+            this.updateSimbaDialog(`"Buzzz! 😾 OTP Sync check failed. The dynamic code entered is incorrect or has expired. Try again!"`, "error");
+          }
+        });
+      }
     }
   };
 

@@ -33,7 +33,9 @@
     badgeDefinitions: {
       1: { name: "Phishing Spotter", icon: "🎣", desc: "Audit incoming inboxes for social engineering and domain spoofing leaks." },
       2: { name: "Password Guru", icon: "🔑", desc: "Construct multi-entropy password barriers that bypass brute-force cracking speeds." },
-      3: { name: "Crypto Specialist", icon: "🛡️", desc: "Bypass corporate ciphers using offset sliders and Caesar decryption matrices." }
+      3: { name: "Crypto Specialist", icon: "🛡️", desc: "Bypass corporate ciphers using offset sliders and Caesar decryption matrices." },
+      4: { name: "Malware Analyst", icon: "🦠", desc: "Isolate trojans and kill rogue ransomware processes in quarantine terminals." },
+      5: { name: "MFA Administrator", icon: "🔐", desc: "Deny social engineering push fatigue and sync dynamic hardware OTP codes." }
     },
 
     // Seed data for the global highscore leaderboards
@@ -747,7 +749,10 @@
       if (roomId === 4 || roomId === 5) {
         return lvl >= 2;
       }
-      return false; // Rooms 6-10 are always locked
+      if (roomId === 6 || roomId === 7) {
+        return lvl >= 3;
+      }
+      return false; // Rooms 8-10 are always locked
     },
 
     updateMapStates: function() {
@@ -776,6 +781,12 @@
                 statusEl.textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
                 statusEl.className = "node-status text-amber";
               }
+            } else if (roomNum === 6 || roomNum === 7) {
+              node.className = "map-node node-active node-locked-ready";
+              if (statusEl) {
+                statusEl.textContent = "LEVEL 3 PASS - DECRYPTING SECTOR...";
+                statusEl.className = "node-status text-amber";
+              }
             } else {
               node.className = "map-node node-active";
               if (statusEl) {
@@ -794,7 +805,9 @@
         } else {
           node.className = "map-node node-locked";
           if (statusEl) {
-            let reqText = (roomNum === 4 || roomNum === 5) ? "LOCKED [LEVEL 2 Required]" : "LOCKED";
+            let reqText = "LOCKED";
+            if (roomNum === 4 || roomNum === 5) reqText = "LOCKED [LEVEL 2 Required]";
+            if (roomNum === 6 || roomNum === 7) reqText = "LOCKED [LEVEL 3 Required]";
             statusEl.textContent = reqText;
             statusEl.className = "node-status text-red";
           }
@@ -837,7 +850,9 @@
         2: "Password Crypt",
         3: "Cipher Console",
         4: "Malware Lab",
-        5: "MFA Database"
+        5: "MFA Database",
+        6: "Network Switch",
+        7: "OSINT Intranet"
       };
 
       if (roomNumLabel) roomNumLabel.textContent = `ROOM 0${roomNum}`;
@@ -846,7 +861,7 @@
       this.switchView("room");
       
       // Start Interactive puzzle logic
-      if (roomNum >= 1 && roomNum <= 3) {
+      if (roomNum >= 1 && roomNum <= 5) {
         if (window.CyberPuzzles) {
           window.CyberPuzzles.startPuzzle(roomNum, () => {
             this.completeCurrentRoom();
@@ -855,7 +870,7 @@
         // Boot up running timer
         this.startRoomTimer();
       } else {
-        // Mock rooms 4 and 5 (unlocked for preview)
+        // Mock rooms 6 and 7 (unlocked for preview at Level 3)
         this.stopRoomTimer();
         const timerEl = document.getElementById("gameTimer");
         if (timerEl) timerEl.textContent = "OFFLINE";
@@ -1069,7 +1084,7 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       document.getElementById("profileHighscore").textContent = String(this.state.score).padStart(5, '0');
 
       // 2. Badges unlocks
-      for (let roomNum = 1; roomNum <= 3; roomNum++) {
+      for (let roomNum = 1; roomNum <= 5; roomNum++) {
         const badgeCard = document.getElementById(`badgeItem${roomNum}`);
         if (badgeCard) {
           const isCleared = this.state.completedRooms.includes(roomNum);
