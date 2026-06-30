@@ -734,85 +734,92 @@
     /* ==========================================================================
        MAP STATES & ROOM TRIGGERS
        ========================================================================== */
+    /**
+     * Helper to verify if a room node is unlocked based on player level
+     */
+    isRoomUnlocked: function(roomNum) {
+      if (roomNum === 1 || roomNum === 2 || roomNum === 3) {
+        return true;
+      }
+      if (roomNum === 4 || roomNum === 5) {
+        return this.state.level >= 2;
+      }
+      return false; // Rooms 6-10 are always locked
+    },
+
     updateMapStates: function() {
       console.log("Before render:", this.state.completedRooms);
       const nodes = document.querySelectorAll(".map-node");
+      
       nodes.forEach(node => {
         const roomNum = parseInt(node.getAttribute("data-room"));
         if (!roomNum) return; // Locked dummy nodes
 
+        const isUnlocked = this.isRoomUnlocked(roomNum);
         const isCleared = this.state.completedRooms.includes(roomNum);
         const statusEl = node.querySelector(".node-status");
         
-        if (isCleared) {
-          node.className = "map-node node-active cleared";
-          if (statusEl) {
-            statusEl.textContent = "COMPLETED";
-            statusEl.className = "node-status text-green";
+        if (isUnlocked) {
+          if (isCleared) {
+            node.className = "map-node node-active cleared";
+            if (statusEl) {
+              statusEl.textContent = "COMPLETED";
+              statusEl.className = "node-status text-green";
+            }
+          } else {
+            if (roomNum === 4 || roomNum === 5) {
+              node.className = "map-node node-active node-locked-ready";
+              if (statusEl) {
+                statusEl.textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
+                statusEl.className = "node-status text-amber";
+              }
+            } else {
+              node.className = "map-node node-active";
+              if (statusEl) {
+                let statusText = "ACTIVE PREVIEW";
+                let accentColorClass = "text-cyan";
+                if (roomNum === 2) {
+                  accentColorClass = "text-amber";
+                } else if (roomNum === 3) {
+                  accentColorClass = "text-pink";
+                }
+                statusEl.textContent = statusText;
+                statusEl.className = `node-status ${accentColorClass}`;
+              }
+            }
           }
         } else {
-          node.className = "map-node node-active";
+          node.className = "map-node node-locked";
           if (statusEl) {
-            let statusText = "ACTIVE PREVIEW";
-            let accentColorClass = "text-cyan";
-            if (roomNum === 2) {
-              accentColorClass = "text-amber";
-            } else if (roomNum === 3) {
-              accentColorClass = "text-pink";
-            }
-            statusEl.textContent = statusText;
-            statusEl.className = `node-status ${accentColorClass}`;
+            let reqText = (roomNum === 4 || roomNum === 5) ? "LOCKED [LEVEL 2 Required]" : "LOCKED";
+            statusEl.textContent = reqText;
+            statusEl.className = "node-status text-red";
           }
         }
       });
 
-      // Update mock locked nodes based on Level
-      const lockedNode4 = document.getElementById("roomNode4");
-      const lockedNode5 = document.getElementById("roomNode5");
-      
-      if (this.state.level >= 2) {
-        if (lockedNode4) {
-          lockedNode4.className = "map-node node-locked-ready";
-          lockedNode4.querySelector(".node-status").textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
-          lockedNode4.querySelector(".node-status").className = "node-status text-amber";
-        }
-        if (lockedNode5) {
-          lockedNode5.className = "map-node node-locked-ready";
-          lockedNode5.querySelector(".node-status").textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
-          lockedNode5.querySelector(".node-status").className = "node-status text-amber";
-        }
-      } else {
-        if (lockedNode4) {
-          lockedNode4.className = "map-node node-locked";
-          lockedNode4.querySelector(".node-status").textContent = "LOCKED [LEVEL 2 Required]";
-          lockedNode4.querySelector(".node-status").className = "node-status text-red";
-        }
-        if (lockedNode5) {
-          lockedNode5.className = "map-node node-locked";
-          lockedNode5.querySelector(".node-status").textContent = "LOCKED [LEVEL 2 Required]";
-          lockedNode5.querySelector(".node-status").className = "node-status text-red";
-        }
-      }
-      
-      // Bind Room launch events to active nodes
-      const playableNodes = document.querySelectorAll(".node-active");
-      playableNodes.forEach(node => {
-        node.replaceWith(node.cloneNode(true)); // Wipe old bindings
+      // Bind launch events to all map nodes (wipe previous first by cloning)
+      nodes.forEach(node => {
+        const newNode = node.cloneNode(true);
+        node.replaceWith(newNode);
       });
 
-      // Re-query and bind clicks
-      document.querySelectorAll(".node-active").forEach(node => {
-        node.addEventListener("click", () => {
-          const room = parseInt(node.getAttribute("data-room"));
-          this.enterRoom(room);
-        });
-      });
-      
-      // Bind warning displays to locked elements
-      document.querySelectorAll(".node-locked").forEach(node => {
-        node.addEventListener("click", () => {
-          alert(`Mainframe Access Denied! 😾 This sector requires higher administrative ranks. Earn XP in playable rooms to level up!`);
-        });
+      // Re-query and bind new event listeners cleanly
+      const freshNodes = document.querySelectorAll(".map-node");
+      freshNodes.forEach(node => {
+        const roomNum = parseInt(node.getAttribute("data-room"));
+        if (!roomNum) return;
+
+        const isUnlocked = this.isRoomUnlocked(roomNum);
+        if (isUnlocked) {
+          node.addEventListener("click", () => {
+            this.enterRoom(roomNum);
+          });
+        } else {
+          node.addEventListener("click", () => {
+            alert(`Mainframe Access Denied! 😾 This sector requires higher administrative ranks. Earn XP in playable rooms to level up!`);
+          });
+        }
       });
       console.log("After updateMapStates:", this.state.completedRooms);
     },
@@ -827,7 +834,9 @@
       let titles = {
         1: "Phishing Firewall",
         2: "Password Crypt",
-        3: "Cipher Console"
+        3: "Cipher Console",
+        4: "Malware Lab",
+        5: "MFA Database"
       };
 
       if (roomNumLabel) roomNumLabel.textContent = `ROOM 0${roomNum}`;
@@ -836,14 +845,29 @@
       this.switchView("room");
       
       // Start Interactive puzzle logic
-      if (window.CyberPuzzles) {
-        window.CyberPuzzles.startPuzzle(roomNum, () => {
-          this.completeCurrentRoom();
-        });
+      if (roomNum >= 1 && roomNum <= 3) {
+        if (window.CyberPuzzles) {
+          window.CyberPuzzles.startPuzzle(roomNum, () => {
+            this.completeCurrentRoom();
+          });
+        }
+        // Boot up running timer
+        this.startRoomTimer();
+      } else {
+        // Mock rooms 4 and 5 (unlocked for preview)
+        this.stopRoomTimer();
+        const timerEl = document.getElementById("gameTimer");
+        if (timerEl) timerEl.textContent = "OFFLINE";
+        
+        // Hide puzzle views since there is no puzzle
+        document.querySelectorAll(".puzzle-view").forEach(el => el.classList.remove("active"));
+        
+        // Set dialog in Simba
+        const msg = `"Sector bypass successful! 😻 Room 0${roomNum} mainframe is unlocked, but the security curriculum compiler is currently offline for maintenance. Return to Map to practice!"`;
+        if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
+          window.CyberPuzzles.updateSimbaDialog(msg, "happy");
+        }
       }
-      
-      // Boot up running timer
-      this.startRoomTimer();
     },
 
     /* ==========================================================================
@@ -900,7 +924,9 @@
       const formattedTime = this.formatTime(this.state.elapsedTime);
       this.state.roomTimes[activeRoom] = formattedTime;
       
-      if (!this.state.completedRooms.includes(activeRoom)) {
+      const isReplay = this.state.completedRooms.includes(activeRoom);
+      
+      if (!isReplay) {
         this.state.completedRooms.push(activeRoom);
       }
       console.log("After room complete:", this.state.completedRooms);
@@ -916,7 +942,12 @@
       const debriefEquiv = document.getElementById("debriefEquivalence");
       
       if (debriefTime) debriefTime.textContent = formattedTime;
-      if (debriefBadge) debriefBadge.textContent = badgeObj ? badgeObj.name : "None";
+      if (debriefBadge) {
+        debriefBadge.textContent = badgeObj ? badgeObj.name : "None";
+        if (isReplay) {
+          debriefBadge.textContent += " (PRACTICED)";
+        }
+      }
       
       const equivTexts = {
         1: "Phishing emails target psychological response mechanisms rather than network protocols. Spotting domain mismatches, urgency triggers, and suspicious hyperlinks aligns with CompTIA Security+ Domain 1.1 (Threats, Attacks, & Vulnerabilities) and standard corporate defense audits!",
@@ -925,6 +956,22 @@
       };
       
       if (debriefEquiv) debriefEquiv.textContent = equivTexts[activeRoom] || "";
+
+      // Render the correct XP metric in the debrief page
+      const xpMetricVal = document.querySelector("#view-debrief .completion-metrics .c-metric:nth-child(1) .value");
+      if (xpMetricVal) {
+        if (isReplay) {
+          xpMetricVal.textContent = "+0 XP (PRACTICE)";
+          xpMetricVal.className = "value text-muted";
+        } else {
+          let xpAwarded = 150;
+          if (activeRoom === 1) xpAwarded = 200; // 4 emails x 50 XP
+          if (activeRoom === 2) xpAwarded = 150;
+          if (activeRoom === 3) xpAwarded = 200;
+          xpMetricVal.textContent = `+${xpAwarded} XP`;
+          xpMetricVal.className = "value text-cyan";
+        }
+      }
       
       // Save stats to update XP/HUD and persist progress locally
       this.updateHud();
@@ -967,12 +1014,22 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
        XP PROGRESSION CALCULATORS
        ========================================================================== */
     addScore: function(points) {
+      // If we are currently replaying a completed room, block score rewards (Practice mode)
+      if (this.state.currentActiveRoom && this.state.completedRooms.includes(this.state.currentActiveRoom)) {
+        console.log(`Practice mode: Score reward of ${points} points blocked for Room ${this.state.currentActiveRoom}`);
+        return;
+      }
       this.state.score = Math.max(0, this.state.score + points);
       this.updateHud();
       this.saveCurrentProgress();
     },
 
     addXp: function(amount) {
+      // If we are currently replaying a completed room, block XP rewards (Practice mode)
+      if (this.state.currentActiveRoom && this.state.completedRooms.includes(this.state.currentActiveRoom)) {
+        console.log(`Practice mode: XP reward of ${amount} XP blocked for Room ${this.state.currentActiveRoom}`);
+        return;
+      }
       this.state.xp += amount;
       
       // Level Up checks
