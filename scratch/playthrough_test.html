@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Escape - Progression Audit Terminal</title>
+  <style>
+    body {
+      background-color: #0d0f12;
+      color: #00ffcc;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 20px;
+    }
+    #console {
+      background-color: #05070a;
+      border: 1px solid #00ffcc;
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+      padding: 20px;
+      height: 500px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    .log-entry { margin-bottom: 8px; line-height: 1.4; }
+    .log-success { color: #00ff00; font-weight: bold; }
+    .log-error { color: #ff3366; font-weight: bold; }
+    .log-info { color: #00ffff; }
+    .log-header { color: #ff00ff; font-weight: bold; text-shadow: 0 0 5px #ff00ff; }
+  </style>
+</head>
+<body>
+  <h1 style="color: #ff00ff; text-shadow: 0 0 10px #ff00ff;">CYBER ESCAPE: PROGRESSION AUDIT TERMINAL</h1>
+  
+  <div id="console">
+    <div class="log-entry log-header">--- INITIALIZING ESCAPE MAIN SYSTEM TELEMETRY AUDIT ---</div>
+  </div>
+
+  <!-- Hidden placeholders to satisfy game_v2.js DOM lookups -->
+  <div style="display:none;">
+    <span id="sidebarUsername"></span>
+    <span id="sidebarRank"></span>
+    <span id="hudLevelVal"></span>
+    <span id="hudScoreVal"></span>
+    <span id="hudXpVal"></span>
+    <div id="hudXpBar"></div>
+    
+    <div id="view-landing"></div>
+    <div id="view-map"></div>
+    <div id="view-room"></div>
+    <div id="view-debrief"></div>
+    <div id="view-profile"></div>
+    <div id="view-classroom"></div>
+    
+    <div id="cityMapGrid"></div>
+    
+    <span id="profileUsername"></span>
+    <span id="profileLevel"></span>
+    <span id="profileScore"></span>
+    <span id="profileXp"></span>
+    <div id="profileXpBar"></div>
+    <span id="profileRooms"></span>
+    <div id="profileBadgeGrid"></div>
+    
+    <table><tbody id="leaderboardBody"></tbody></table>
+    
+    <input id="usernameInput" />
+    <input id="passwordInput" />
+    
+    <div id="landingDialogue"></div>
+    <div id="landingAuthCard"></div>
+    
+    <span id="debriefTime"></span>
+    <span id="debriefBadgeName"></span>
+    <span id="debriefEquivalence"></span>
+    
+    <button id="navBtnLogout"></button>
+    <span id="roomNumberLabel"></span>
+  </div>
+
+  <!-- Load Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load Game Configuration and Core JS -->
+  <script src="../assets/js/supabase.js"></script>
+  <script src="../assets/js/game_v2.js"></script>
+
+  <script>
+    const term = document.getElementById("console");
+    function log(msg, type = "info") {
+      const entry = document.createElement("div");
+      entry.className = "log-entry log-" + type;
+      entry.textContent = msg;
+      term.appendChild(entry);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    // Intercept alert to prevent browser popups during audit
+    window.alert = (msg) => {
+      log("[ALERT NOTIFICATION] " + msg, "success");
+    };
+
+    window.addEventListener("load", async () => {
+      log("Core engines loaded. Commencing playthrough audit...", "info");
+      
+      const game = window.CyberGame;
+      if (!game) {
+        log("ERROR: CyberGame engine failed to load!", "error");
+        return;
+      }
+      
+      const randId = Math.floor(1000 + Math.random() * 9000);
+      const testUser = "AUDIT_NEO_" + randId;
+      
+      log("Generating brand-new specialist identity node: " + testUser, "info");
+      
+      try {
+        // Register new profile
+        const newProfile = {
+          username: testUser,
+          level: 1,
+          xp: 0,
+          maxXp: 300,
+          score: 0,
+          completedRooms: [],
+          badges: [],
+          roomTimes: {},
+          classroomLinked: false,
+          classroomCode: ""
+        };
+        
+        log("Writing identity node to escape mainframe database...", "info");
+        await game.registerProfile(newProfile);
+        log("Identity node compiled successfully in Supabase!", "success");
+        
+        // Log in
+        log("Activating session credentials for " + testUser + "...", "info");
+        await game.updatePlayerProgress({ fromProfile: newProfile });
+        game.setActiveSession(testUser);
+        
+        log("Initial state loaded: Level=" + game.state.level + ", XP=" + game.state.xp + ", CompletedRooms=" + JSON.stringify(game.state.completedRooms), "info");
+
+        // Helper to complete a room
+        async function solveRoom(roomId, xpAward, scoreAward) {
+          log("--- Auditing Room " + roomId + " ---", "header");
+          game.state.currentActiveRoom = roomId;
+          
+          log("Awarding +" + xpAward + " XP...", "info");
+          await game.updatePlayerProgress({ addXp: xpAward });
+          
+          log("Awarding +" + scoreAward + " Score...", "info");
+          await game.updatePlayerProgress({ addScore: scoreAward });
+          
+          log("Marking Room " + roomId + " as COMPLETED...", "info");
+          await game.updatePlayerProgress({
+            completeRoom: roomId,
+            roomTime: { room: roomId, time: "00:42.15" }
+          });
+          
+          // Small pause to guarantee DB write completion order
+          await new Promise(r => setTimeout(r, 200));
+          
+          log("State after Room " + roomId + " complete: Level=" + game.state.level + ", XP=" + game.state.xp + "/" + game.state.maxXp + ", Score=" + game.state.score, "success");
+        }
+
+        // Room completions 1 to 9
+        await solveRoom(1, 200, 400);
+        await solveRoom(2, 150, 400);
+        await solveRoom(3, 200, 400);
+        await solveRoom(4, 200, 400);
+        await solveRoom(5, 200, 500);
+        await solveRoom(6, 150, 300);
+        await solveRoom(7, 150, 400);
+        await solveRoom(8, 150, 300);
+        await solveRoom(9, 150, 450);
+
+        // Verification
+        log("--- COMMENCING FINAL STATE AUDIT ---", "header");
+        log("Completed Rooms in state: " + JSON.stringify(game.state.completedRooms), "info");
+        log("Total XP in state: " + game.state.totalXp, "info");
+        log("Current Level in state: " + game.state.level, "info");
+        
+        const room10Config = game.roomsConfig.find(r => r.room === 10);
+        log("Room 10 Access Check: Required Level=" + room10Config.requiredLevel + ", Player Level=" + game.state.level, "info");
+        
+        const canAccess = game.canAccessRoom(10);
+        if (canAccess) {
+          log("VERIFICATION SUCCESS: Room 10 is naturally UNLOCKED!", "success");
+        } else {
+          log("VERIFICATION FAILURE: Room 10 remains LOCKED!", "error");
+        }
+
+        // Load profile back from Supabase to verify DB state
+        log("Fetching identity node state back from Supabase to verify persistence...", "info");
+        const freshProfile = await game.loadProfile(testUser);
+        log("Supabase record: Level=" + freshProfile.level + ", XP=" + freshProfile.xp + ", Score=" + freshProfile.score + ", CompletedRooms=" + JSON.stringify(freshProfile.completedrooms), "info");
+        
+        // Load into memory via fromProfile to verify self-healing logic
+        log("Simulating browser refresh - restoring restored database payload into state...", "info");
+        await game.updatePlayerProgress({ fromProfile: freshProfile });
+        
+        log("Restored state: Level=" + game.state.level + ", XP=" + game.state.xp + ", TotalXP=" + game.state.totalXp, "info");
+        
+        const restoredAccess = game.canAccessRoom(10);
+        if (restoredAccess) {
+          log("RESTORE AUDIT SUCCESS: Room 10 remains unlocked after browser refresh simulation!", "success");
+        } else {
+          log("RESTORE AUDIT FAILURE: Room 10 locked after browser refresh!", "error");
+        }
+        
+      } catch (err) {
+        log("AUDIT ERROR: Exception thrown: " + err.message, "error");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

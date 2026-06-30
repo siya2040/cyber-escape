@@ -6,6 +6,7 @@
 (function() {
   // Main Game State Manager
   const CyberGame = {
+    writeQueue: Promise.resolve(),
     // Player Profile Data
     state: {
       username: "GUEST_PLAYER",
@@ -32,16 +33,16 @@
 
     // Badges definitions
     roomsConfig: [
-      { room: 1, title: "Phishing Firewall", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📧", requiredLevel: 1 },
-      { room: 2, title: "Password Crypt", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🔑", requiredLevel: 1 },
-      { room: 3, title: "Cipher Console", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "💻", requiredLevel: 1 },
-      { room: 4, title: "Malware Lab", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "🦠", requiredLevel: 2 },
-      { room: 5, title: "MFA Database", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🔐", requiredLevel: 2 },
-      { room: 6, title: "Network Switch", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📡", requiredLevel: 3 },
-      { room: 7, title: "OSINT Intranet", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🕵️", requiredLevel: 3 },
-      { room: 8, title: "Dark Web Hub", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🧅", requiredLevel: 4 },
-      { room: 9, title: "System Metadata", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📜", requiredLevel: 4 },
-      { room: 10, title: "Breach Response", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🚨", requiredLevel: 5 }
+      { room: 1, title: "Phishing Firewall", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📧", requiredLevel: 1, xpReward: 200, scoreReward: 400 },
+      { room: 2, title: "Password Crypt", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🔑", requiredLevel: 1, xpReward: 150, scoreReward: 400 },
+      { room: 3, title: "Cipher Console", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "💻", requiredLevel: 1, xpReward: 200, scoreReward: 400 },
+      { room: 4, title: "Malware Lab", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "🦠", requiredLevel: 2, xpReward: 200, scoreReward: 400 },
+      { room: 5, title: "MFA Database", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🔐", requiredLevel: 2, xpReward: 200, scoreReward: 500 },
+      { room: 6, title: "Network Switch", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📡", requiredLevel: 3, xpReward: 150, scoreReward: 300 },
+      { room: 7, title: "OSINT Intranet", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🕵️", requiredLevel: 3, xpReward: 150, scoreReward: 400 },
+      { room: 8, title: "Dark Web Hub", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🧅", requiredLevel: 4, xpReward: 150, scoreReward: 300 },
+      { room: 9, title: "System Metadata", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📜", requiredLevel: 4, xpReward: 150, scoreReward: 450 },
+      { room: 10, title: "Breach Response", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🚨", requiredLevel: 5, xpReward: 300, scoreReward: 600 }
     ],
 
     badgeDefinitions: {
@@ -776,8 +777,19 @@
         this.state.classroomLinked = !!(prof.classroomLinked || prof.classroomlinked);
         this.state.classroomCode = prof.classroomCode || prof.classroomcode || "";
         
-        // Calculate totalXp based on stored level and xp to avoid mismatch
-        this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
+        // Calculate totalXp deterministically on load from completed rooms to avoid any database race condition mismatch
+        let calculatedTotalXp = 0;
+        this.state.completedRooms.forEach(roomId => {
+          const rConfig = this.roomsConfig.find(rc => rc.room === roomId);
+          if (rConfig) {
+            calculatedTotalXp += rConfig.xpReward || 150;
+          }
+        });
+        if (this.state.classroomLinked) {
+          calculatedTotalXp += 100;
+        }
+        
+        this.state.totalXp = calculatedTotalXp;
         
         stateChanged = true;
       }
@@ -852,24 +864,29 @@
         // 4. Persist updated states to Supabase (if logged in)
         const username = this.state.username;
         if (username && username !== "GUEST_PLAYER" && username !== "SPECIALIST_GUEST" && username !== "SPECIALIST_GUEST_TEST") {
-          try {
-            const payload = {
-              username: username,
-              level: this.state.level,
-              xp: this.state.xp,
-              maxXp: this.state.maxXp,
-              score: this.state.score,
-              completedRooms: this.state.completedRooms,
-              badges: this.state.badges,
-              roomTimes: this.state.roomTimes,
-              classroomLinked: this.state.classroomLinked,
-              classroomCode: this.state.classroomCode
-            };
-            await this.saveProfile(payload);
-            console.log("[Progression Engine] Saved profile payload successfully.");
-          } catch (err) {
-            console.error("[Progression Engine] Failed to save profile to Supabase:", err);
-          }
+          const payload = {
+            username: username,
+            level: this.state.level,
+            xp: this.state.xp,
+            maxXp: this.state.maxXp,
+            score: this.state.score,
+            completedRooms: this.state.completedRooms,
+            badges: this.state.badges,
+            roomTimes: this.state.roomTimes,
+            classroomLinked: this.state.classroomLinked,
+            classroomCode: this.state.classroomCode
+          };
+          
+          this.writeQueue = this.writeQueue.then(async () => {
+            try {
+              await this.saveProfile(payload);
+              console.log("[Progression Engine] Saved profile payload successfully.");
+            } catch (err) {
+              console.error("[Progression Engine] Failed to save profile to Supabase:", err);
+            }
+          });
+          
+          await this.writeQueue;
         }
         
         // If promoted, alert user
