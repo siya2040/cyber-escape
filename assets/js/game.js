@@ -735,14 +735,17 @@
        MAP STATES & ROOM TRIGGERS
        ========================================================================== */
     /**
-     * Helper to verify if a room node is unlocked based on player level
+     * Single shared function to verify if a room is unlocked/accessible.
+     * Relying on the player state structure synced from Supabase.
      */
-    isRoomUnlocked: function(roomNum) {
-      if (roomNum === 1 || roomNum === 2 || roomNum === 3) {
+    canAccessRoom: function(roomId, player) {
+      const p = player || this.state;
+      const lvl = p.level || 1;
+      if (roomId === 1 || roomId === 2 || roomId === 3) {
         return true;
       }
-      if (roomNum === 4 || roomNum === 5) {
-        return this.state.level >= 2;
+      if (roomId === 4 || roomId === 5) {
+        return lvl >= 2;
       }
       return false; // Rooms 6-10 are always locked
     },
@@ -755,7 +758,7 @@
         const roomNum = parseInt(node.getAttribute("data-room"));
         if (!roomNum) return; // Locked dummy nodes
 
-        const isUnlocked = this.isRoomUnlocked(roomNum);
+        const isUnlocked = this.canAccessRoom(roomNum, this.state);
         const isCleared = this.state.completedRooms.includes(roomNum);
         const statusEl = node.querySelector(".node-status");
         
@@ -804,22 +807,20 @@
         node.replaceWith(newNode);
       });
 
-      // Re-query and bind new event listeners cleanly
+      // Re-query and bind new event listeners cleanly using the shared canAccessRoom logic
       const freshNodes = document.querySelectorAll(".map-node");
       freshNodes.forEach(node => {
         const roomNum = parseInt(node.getAttribute("data-room"));
         if (!roomNum) return;
 
-        const isUnlocked = this.isRoomUnlocked(roomNum);
-        if (isUnlocked) {
-          node.addEventListener("click", () => {
+        node.addEventListener("click", () => {
+          const freshPlayerState = this.state;
+          if (this.canAccessRoom(roomNum, freshPlayerState)) {
             this.enterRoom(roomNum);
-          });
-        } else {
-          node.addEventListener("click", () => {
+          } else {
             alert(`Mainframe Access Denied! 😾 This sector requires higher administrative ranks. Earn XP in playable rooms to level up!`);
-          });
-        }
+          }
+        });
       });
       console.log("After updateMapStates:", this.state.completedRooms);
     },
@@ -1042,10 +1043,12 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
         setTimeout(() => {
           alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors 04 & 05 have been unlocked for decryption. Simba is proud of your progress!`);
           this.updateHud();
+          this.updateMapStates(); // Sync map immediately on Level Up alert
           this.saveCurrentProgress();
         }, 800);
       }
       this.updateHud();
+      this.updateMapStates(); // Sync map immediately on gain of XP
       this.saveCurrentProgress();
     },
 
