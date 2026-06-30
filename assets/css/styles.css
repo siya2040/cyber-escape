@@ -747,19 +747,15 @@ body.scanlines-active::after {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; height: 3px;
-  background: transparent;
+  background: var(--card-accent, transparent);
   transition: background-color 0.2s ease;
 }
 
 .map-node.node-active:hover {
   transform: translateY(-3px) scale(1.02);
-  border-color: rgba(0, 255, 255, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 255, 255, 0.15);
+  border-color: var(--card-accent, rgba(0, 255, 255, 0.3));
+  box-shadow: 0 8px 24px var(--card-glow, rgba(0, 255, 255, 0.15));
 }
-
-.map-node[data-room="1"]::after { background: var(--cyber-cyan); }
-.map-node[data-room="2"]::after { background: var(--cyber-amber); }
-.map-node[data-room="3"]::after { background: var(--cyber-pink); }
 
 .node-accent-color {
   font-family: var(--font-heading);

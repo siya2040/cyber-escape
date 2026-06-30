@@ -254,82 +254,8 @@
         </div>
         
         <!-- Room Selector Grid -->
-        <div class="city-map-grid">
-          
-          <!-- ROOM 1 -->
-          <div class="map-node node-active" id="roomNode1" data-room="1">
-            <div class="node-accent-color text-cyan">01</div>
-            <div class="node-icon">📧</div>
-            <div class="node-name">Phishing Firewall</div>
-            <div class="node-status text-cyan">ACTIVE PREVIEW</div>
-          </div>
-          
-          <!-- ROOM 2 -->
-          <div class="map-node node-active" id="roomNode2" data-room="2">
-            <div class="node-accent-color text-amber">02</div>
-            <div class="node-icon">🔑</div>
-            <div class="node-name">Password Crypt</div>
-            <div class="node-status text-amber">ACTIVE PREVIEW</div>
-          </div>
-          
-          <!-- ROOM 3 -->
-          <div class="map-node node-active" id="roomNode3" data-room="3">
-            <div class="node-accent-color text-pink">03</div>
-            <div class="node-icon">💻</div>
-            <div class="node-name">Cipher Console</div>
-            <div class="node-status text-pink">ACTIVE PREVIEW</div>
-          </div>
-          
-          <!-- MOCK LOCKED ROOMS 4 - 10 -->
-          <div class="map-node node-locked" id="roomNode4" data-room="4">
-            <div class="node-accent-color text-muted">04</div>
-            <div class="node-icon">🦠</div>
-            <div class="node-name">Malware Lab</div>
-            <div class="node-status text-red">LOCKED [LEVEL 2 Required]</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode5" data-room="5">
-            <div class="node-accent-color text-muted">05</div>
-            <div class="node-icon">🔐</div>
-            <div class="node-name">MFA Database</div>
-            <div class="node-status text-red">LOCKED [LEVEL 2 Required]</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode6" data-room="6">
-            <div class="node-accent-color text-muted">06</div>
-            <div class="node-icon">📡</div>
-            <div class="node-name">Network Switch</div>
-            <div class="node-status text-red">LOCKED</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode7" data-room="7">
-            <div class="node-accent-color text-muted">07</div>
-            <div class="node-icon">🕵️</div>
-            <div class="node-name">OSINT Intranet</div>
-            <div class="node-status text-red">LOCKED</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode8" data-room="8">
-            <div class="node-accent-color text-muted">08</div>
-            <div class="node-icon">🧅</div>
-            <div class="node-name">Dark Web Hub</div>
-            <div class="node-status text-red">LOCKED</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode9" data-room="9">
-            <div class="node-accent-color text-muted">09</div>
-            <div class="node-icon">📜</div>
-            <div class="node-name">System Metadata</div>
-            <div class="node-status text-red">LOCKED</div>
-          </div>
-
-          <div class="map-node node-locked" id="roomNode10" data-room="10">
-            <div class="node-accent-color text-muted">10</div>
-            <div class="node-icon">🚨</div>
-            <div class="node-name">Breach Response</div>
-            <div class="node-status text-red">LOCKED</div>
-          </div>
-          
+        <div class="city-map-grid" id="cityMapGrid">
+          <!-- Rendered dynamically via game_v2.js reusable component logic -->
         </div>
       </section>
       
@@ -561,6 +487,167 @@
             </div>
           </div>
           
+          <!-- ================= PUZZLE 6: NETWORK SWITCH ================= -->
+          <div class="puzzle-view" id="puzzle-network">
+            <div class="malware-game-layout">
+              <div class="process-sidebar">
+                <div class="inbox-title">&gt;_ INCOMING PACKETS</div>
+                <div class="process-list" id="networkPacketList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="process-details-panel">
+                <div class="process-header-card">
+                  <div class="meta-row">
+                    <span class="key">SOURCE IP:</span>
+                    <span class="val text-white" id="packetIpDisplay">192.168.1.50</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">PORT:</span>
+                    <span class="val text-pink" id="packetPortDisplay">22 (SSH)</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">MAC ADDRESS:</span>
+                    <span class="val text-cyan" id="packetMacDisplay">00:1A:2B:3C:4D:5E</span>
+                  </div>
+                </div>
+                
+                <div class="process-body-content" id="packetDescription">
+                  Packet analysis loading...
+                </div>
+                
+                <div class="process-decision-footer">
+                  <button class="cyber-btn border-green glow-green flex-1" id="allowPacketBtn">PERMIT/ALLOW</button>
+                  <button class="cyber-btn border-red glow-red flex-1" id="denyPacketBtn">DENY/BLOCK</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 7: OSINT INTRANET ================= -->
+          <div class="puzzle-view" id="puzzle-osint">
+            <div class="mfa-game-layout">
+              <div class="mfa-fatigue-panel" style="flex: 1.2;">
+                <div class="inbox-title" style="border-bottom: 1px solid rgba(0, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 8px;">&gt;_ LEAKED INTRANET FILES</div>
+                <div class="process-body-content" style="flex: 1; margin-bottom: 0; background: rgba(3, 8, 16, 0.8);" id="osintLeakedData">
+                  <!-- Loaded dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="mfa-sync-panel" style="flex: 0.8; text-align: left; align-items: stretch; justify-content: flex-start;">
+                <div class="mfa-sync-lock-status text-pink text-center" style="font-size: 14px; margin-bottom: 14px;">SECURITY RESET INTRUSION</div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                  <label class="terminal-label" style="font-size: 9px;" for="osintQ1Input">Q1: TARGET FIRST PET NAME?</label>
+                  <input type="text" id="osintQ1Input" class="custom-input" placeholder="Enter name..." />
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label class="terminal-label" style="font-size: 9px;" for="osintQ2Input">Q2: TARGET MOTHER'S MAIDEN NAME?</label>
+                  <input type="text" id="osintQ2Input" class="custom-input" placeholder="Enter maiden name..." />
+                </div>
+                
+                <button class="cyber-btn border-pink glow-pink" style="width: 100%; margin-top: auto;" id="submitOsintAnswersBtn">SUBMIT RESET ANSWERS</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 8: SQL INJECTION / DB GUARD ================= -->
+          <div class="puzzle-view" id="puzzle-dbguard">
+            <div class="malware-game-layout">
+              <div class="process-sidebar">
+                <div class="inbox-title">&gt;_ DB INBOUND QUERIES</div>
+                <div class="process-list" id="dbQueryList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="process-details-panel">
+                <div class="process-header-card">
+                  <div class="meta-row">
+                    <span class="key">API ENDPOINT:</span>
+                    <span class="val text-white" id="dbEndpointDisplay">/api/v1/auth/login</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">PROTOCOL:</span>
+                    <span class="val text-cyan">POST (JSON Payload)</span>
+                  </div>
+                </div>
+                
+                <div class="process-body-content" id="dbQueryDescription" style="font-family: monospace; color: var(--cyber-pink); background: rgba(3, 8, 16, 0.9);">
+                  Query parameters analysis loading...
+                </div>
+                
+                <div class="process-decision-footer">
+                  <button class="cyber-btn border-green glow-green flex-1" id="allowQueryBtn">SAFE PASS</button>
+                  <button class="cyber-btn border-red glow-red flex-1" id="denyQueryBtn">BLOCK SQLi</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 9: ENCRYPTION KEY EXCHANGE ================= -->
+          <div class="puzzle-view" id="puzzle-keyexchange">
+            <div class="mfa-game-layout" style="justify-content: center; align-items: center;">
+              <div class="mfa-sync-panel" style="flex: 1; max-width: 460px; padding: 24px;">
+                <div class="mfa-sync-lock-status text-cyan">DIFFIE-HELLMAN KEY EXCHANGE</div>
+                
+                <div class="mfa-sync-formula-box" style="margin: 16px 0;">
+                  <div class="text-white" style="margin-bottom: 4px; font-weight: bold;">CRYPTOGRAPHIC PARAMETERS:</div>
+                  <code style="display: block; margin-bottom: 10px; color: var(--cyber-pink);">Shared Secret (K) = (B^a) mod p</code>
+                  <div style="text-align: left; line-height: 1.6; font-size: 11px;">
+                    Prime Modulus (<strong class="text-white">p</strong>): <strong class="text-cyan" id="dhPrimeDisplay">13</strong><br>
+                    Base Generator (<strong class="text-white">g</strong>): <strong class="text-cyan">2</strong><br>
+                    Your Private Integer (<strong class="text-white">a</strong>): <strong class="text-pink" id="dhPrivateDisplay">4</strong><br>
+                    Server Public Transmission (<strong class="text-white">B</strong>): <strong class="text-amber" id="dhPublicDisplay">3</strong>
+                  </div>
+                </div>
+                
+                <div class="form-group" style="width: 100%; margin-bottom: 16px; text-align: left;">
+                  <label class="terminal-label" for="dhSharedSecretInput">COMPUTED SHARED SECRET KEY:</label>
+                  <input type="text" id="dhSharedSecretInput" class="terminal-input text-center" placeholder="Enter calculated integer..." maxlength="6" />
+                </div>
+                
+                <button class="cyber-btn border-cyan glow-cyan" style="width: 100%;" id="submitDhSecretBtn">ESTABLISH SECURE LINK</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ================= PUZZLE 10: AI FIREWALL ================= -->
+          <div class="puzzle-view" id="puzzle-aifirewall">
+            <div class="malware-game-layout">
+              <div class="process-sidebar">
+                <div class="inbox-title">&gt;_ LLM PROMPT INGESTION</div>
+                <div class="process-list" id="aiPromptList">
+                  <!-- Generated dynamically in JS -->
+                </div>
+              </div>
+              
+              <div class="process-details-panel">
+                <div class="process-header-card">
+                  <div class="meta-row">
+                    <span class="key">AI INTENT:</span>
+                    <span class="val text-white" id="aiIntentDisplay">SYSTEM CONTROL BYPASS</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="key">RISK SCORE:</span>
+                    <span class="val text-pink" id="aiRiskDisplay">CRITICAL (9.8/10)</span>
+                  </div>
+                </div>
+                
+                <div class="process-body-content" id="aiPromptDescription">
+                  Prompt payload analyzing...
+                </div>
+                
+                <div class="process-decision-footer">
+                  <button class="cyber-btn border-green glow-green flex-1" id="allowPromptBtn">ALLOW PROMPT</button>
+                  <button class="cyber-btn border-red glow-red flex-1" id="denyPromptBtn">BLOCK INJECTION</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </section>
       
@@ -671,6 +758,41 @@
               <div class="badge-item locked" id="badgeItem5">
                 <div class="badge-icon">🔐</div>
                 <div class="badge-title">MFA Administrator</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 6 Badge -->
+              <div class="badge-item locked" id="badgeItem6">
+                <div class="badge-icon">📡</div>
+                <div class="badge-title">Network Engineer</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 7 Badge -->
+              <div class="badge-item locked" id="badgeItem7">
+                <div class="badge-icon">🕵️</div>
+                <div class="badge-title">OSINT Investigator</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 8 Badge -->
+              <div class="badge-item locked" id="badgeItem8">
+                <div class="badge-icon">🧅</div>
+                <div class="badge-title">Database Defender</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 9 Badge -->
+              <div class="badge-item locked" id="badgeItem9">
+                <div class="badge-icon">📜</div>
+                <div class="badge-title">Crypto Analyst</div>
+                <div class="badge-date">LOCKED</div>
+              </div>
+              
+              <!-- Room 10 Badge -->
+              <div class="badge-item locked" id="badgeItem10">
+                <div class="badge-icon">🚨</div>
+                <div class="badge-title">AI Sentinel</div>
                 <div class="badge-date">LOCKED</div>
               </div>
             </div>

@@ -31,12 +31,30 @@
     },
 
     // Badges definitions
+    roomsConfig: [
+      { room: 1, title: "Phishing Firewall", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📧", requiredLevel: 1 },
+      { room: 2, title: "Password Crypt", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🔑", requiredLevel: 1 },
+      { room: 3, title: "Cipher Console", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "💻", requiredLevel: 1 },
+      { room: 4, title: "Malware Lab", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "🦠", requiredLevel: 2 },
+      { room: 5, title: "MFA Database", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🔐", requiredLevel: 2 },
+      { room: 6, title: "Network Switch", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📡", requiredLevel: 3 },
+      { room: 7, title: "OSINT Intranet", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🕵️", requiredLevel: 3 },
+      { room: 8, title: "Dark Web Hub", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🧅", requiredLevel: 4 },
+      { room: 9, title: "System Metadata", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📜", requiredLevel: 4 },
+      { room: 10, title: "Breach Response", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🚨", requiredLevel: 5 }
+    ],
+
     badgeDefinitions: {
       1: { name: "Phishing Spotter", icon: "🎣", desc: "Audit incoming inboxes for social engineering and domain spoofing leaks." },
       2: { name: "Password Guru", icon: "🔑", desc: "Construct multi-entropy password barriers that bypass brute-force cracking speeds." },
       3: { name: "Crypto Specialist", icon: "🛡️", desc: "Bypass corporate ciphers using offset sliders and Caesar decryption matrices." },
       4: { name: "Malware Analyst", icon: "🦠", desc: "Isolate trojans and kill rogue ransomware processes in quarantine terminals." },
-      5: { name: "MFA Administrator", icon: "🔐", desc: "Deny social engineering push fatigue and sync dynamic hardware OTP codes." }
+      5: { name: "MFA Administrator", icon: "🔐", desc: "Deny social engineering push fatigue and sync dynamic hardware OTP codes." },
+      6: { name: "Network Engineer", icon: "📡", desc: "Configure Access Control Lists (ACLs) to block SSH and reverse shell packet exploits." },
+      7: { name: "OSINT Investigator", icon: "🕵️", desc: "Harvest leaked metadata from calendars and public blogs to rebuild target verification files." },
+      8: { name: "Database Defender", icon: "🧅", desc: "Classify and sanitise inbound SQL queries to neutralize web injection payloads." },
+      9: { name: "Crypto Analyst", icon: "📜", desc: "Compute Diffie-Hellman mathematical modular shared secrets to verify secure key exchanges." },
+      10: { name: "AI Sentinel", icon: "🚨", desc: "Isolate prompt injection attack vectors and enforce safe LLM chat boundaries to rescue Simba." }
     },
 
     // Seed data for the global highscore leaderboards
@@ -785,97 +803,64 @@
     canAccessRoom: function(roomId, player) {
       const p = player || this.state;
       const lvl = p.level || 1;
-      if (roomId === 1 || roomId === 2 || roomId === 3) {
-        return true;
-      }
-      if (roomId === 4 || roomId === 5) {
-        return lvl >= 2;
-      }
-      if (roomId === 6 || roomId === 7) {
-        return lvl >= 3;
-      }
-      return false; // Rooms 8-10 are always locked
+      const room = this.roomsConfig.find(r => r.room === roomId);
+      if (!room) return false;
+      return lvl >= room.requiredLevel;
     },
 
     updateMapStates: function() {
-      console.log("Before render:", this.state.completedRooms);
-      const nodes = document.querySelectorAll(".map-node");
+      console.log("[Progression Flow] Rendering map nodes...");
+      const gridEl = document.getElementById("cityMapGrid");
+      if (!gridEl) return;
       
-      nodes.forEach(node => {
-        const roomNum = parseInt(node.getAttribute("data-room"));
-        if (!roomNum) return; // Locked dummy nodes
-
-        const isUnlocked = this.canAccessRoom(roomNum, this.state);
-        const isCleared = this.state.completedRooms.includes(roomNum);
-        const statusEl = node.querySelector(".node-status");
+      gridEl.innerHTML = "";
+      
+      this.roomsConfig.forEach(cfg => {
+        const isUnlocked = this.canAccessRoom(cfg.room, this.state);
+        const isCleared = this.state.completedRooms.includes(cfg.room);
+        
+        let statusText = "LOCKED";
+        let statusColorClass = "text-red";
+        let nodeClass = "node-locked";
         
         if (isUnlocked) {
           if (isCleared) {
-            node.className = "map-node node-active cleared";
-            if (statusEl) {
-              statusEl.textContent = "COMPLETED";
-              statusEl.className = "node-status text-green";
-            }
+            statusText = "COMPLETED";
+            statusColorClass = "text-green";
+            nodeClass = "node-active cleared";
           } else {
-            if (roomNum === 4 || roomNum === 5) {
-              node.className = "map-node node-active node-locked-ready";
-              if (statusEl) {
-                statusEl.textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
-                statusEl.className = "node-status text-amber";
-              }
-            } else if (roomNum === 6 || roomNum === 7) {
-              node.className = "map-node node-active node-locked-ready";
-              if (statusEl) {
-                statusEl.textContent = "LEVEL 3 PASS - DECRYPTING SECTOR...";
-                statusEl.className = "node-status text-amber";
-              }
-            } else {
-              node.className = "map-node node-active";
-              if (statusEl) {
-                let statusText = "ACTIVE PREVIEW";
-                let accentColorClass = "text-cyan";
-                if (roomNum === 2) {
-                  accentColorClass = "text-amber";
-                } else if (roomNum === 3) {
-                  accentColorClass = "text-pink";
-                }
-                statusEl.textContent = statusText;
-                statusEl.className = `node-status ${accentColorClass}`;
-              }
-            }
+            statusText = "ACTIVE PREVIEW";
+            statusColorClass = cfg.accentClass;
+            nodeClass = "node-active";
           }
         } else {
-          node.className = "map-node node-locked";
-          if (statusEl) {
-            let reqText = "LOCKED";
-            if (roomNum === 4 || roomNum === 5) reqText = "LOCKED [LEVEL 2 Required]";
-            if (roomNum === 6 || roomNum === 7) reqText = "LOCKED [LEVEL 3 Required]";
-            statusEl.textContent = reqText;
-            statusEl.className = "node-status text-red";
-          }
+          statusText = `LOCKED [LEVEL ${cfg.requiredLevel} Required]`;
         }
-      });
-
-      // Bind launch events to all map nodes (wipe previous first by cloning)
-      nodes.forEach(node => {
-        const newNode = node.cloneNode(true);
-        node.replaceWith(newNode);
-      });
-
-      // Re-query and bind new event listeners cleanly using the shared canAccessRoom logic
-      const freshNodes = document.querySelectorAll(".map-node");
-      freshNodes.forEach(node => {
-        const roomNum = parseInt(node.getAttribute("data-room"));
-        if (!roomNum) return;
-
-        node.addEventListener("click", () => {
-          const freshPlayerState = this.state;
-          if (this.canAccessRoom(roomNum, freshPlayerState)) {
-            this.enterRoom(roomNum);
+        
+        const card = document.createElement("div");
+        card.className = `map-node ${nodeClass}`;
+        card.setAttribute("data-room", cfg.room);
+        card.setAttribute("style", `--card-accent: ${cfg.accent}; --card-glow: ${cfg.glow};`);
+        
+        const numStr = String(cfg.room).padStart(2, "0");
+        
+        card.innerHTML = `
+          <div class="node-accent-color ${isUnlocked ? cfg.accentClass : "text-muted"}">${numStr}</div>
+          <div class="node-icon">${cfg.icon}</div>
+          <div class="node-name">${cfg.title}</div>
+          <div class="node-status ${statusColorClass}">${statusText}</div>
+        `;
+        
+        // Click listener
+        card.addEventListener("click", () => {
+          if (this.canAccessRoom(cfg.room, this.state)) {
+            this.enterRoom(cfg.room);
           } else {
             alert(`Mainframe Access Denied! 😾 This sector requires higher administrative ranks. Earn XP in playable rooms to level up!`);
           }
         });
+        
+        gridEl.appendChild(card);
       });
       console.log("After updateMapStates:", this.state.completedRooms);
     },
@@ -887,23 +872,15 @@
       const roomNumLabel = document.getElementById("roomNumberLabel");
       const roomTitleLabel = document.getElementById("roomTitleLabel");
       
-      let titles = {
-        1: "Phishing Firewall",
-        2: "Password Crypt",
-        3: "Cipher Console",
-        4: "Malware Lab",
-        5: "MFA Database",
-        6: "Network Switch",
-        7: "OSINT Intranet"
-      };
+      const room = this.roomsConfig.find(r => r.room === roomNum);
 
       if (roomNumLabel) roomNumLabel.textContent = `ROOM 0${roomNum}`;
-      if (roomTitleLabel) roomTitleLabel.textContent = titles[roomNum] || "Cyber Lock";
+      if (roomTitleLabel) roomTitleLabel.textContent = room ? room.title : "Cyber Lock";
       
       this.switchView("room");
       
       // Start Interactive puzzle logic
-      if (roomNum >= 1 && roomNum <= 5) {
+      if (roomNum >= 1 && roomNum <= 10) {
         if (window.CyberPuzzles) {
           window.CyberPuzzles.startPuzzle(roomNum, () => {
             this.completeCurrentRoom();
@@ -912,7 +889,6 @@
         // Boot up running timer
         this.startRoomTimer();
       } else {
-        // Mock rooms 6 and 7 (unlocked for preview at Level 3)
         this.stopRoomTimer();
         const timerEl = document.getElementById("gameTimer");
         if (timerEl) timerEl.textContent = "OFFLINE";
@@ -1142,7 +1118,7 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       document.getElementById("profileHighscore").textContent = String(this.state.score).padStart(5, '0');
 
       // 2. Badges unlocks
-      for (let roomNum = 1; roomNum <= 5; roomNum++) {
+      for (let roomNum = 1; roomNum <= 10; roomNum++) {
         const badgeCard = document.getElementById(`badgeItem${roomNum}`);
         if (badgeCard) {
           const isCleared = this.state.completedRooms.includes(roomNum);
