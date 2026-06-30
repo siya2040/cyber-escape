@@ -371,10 +371,11 @@
     saveCurrentProgress: async function() {
       const username = this.state.username;
       if (!username || username === "GUEST_PLAYER" || username === "SPECIALIST_GUEST") {
-        return; // Don't persist guest progress
+        console.log("[Progression Flow] saveCurrentProgress skipped: user is Guest or undefined.");
+        return;
       }
       
-      console.log("saveCurrentProgress: Initiating save flow for user:", username);
+      console.log("[Progression Flow] Step 3 (Persisting): saveCurrentProgress initiated for user:", username);
       
       try {
         const payload = {
@@ -389,12 +390,12 @@
           classroomLinked: this.state.classroomLinked,
           classroomcode: this.state.classroomCode
         };
-        console.log("Saving:", payload.completedRooms);
+        console.log("[Progression Flow] Step 3a (Payload): Profile payload prepared for Supabase:", payload);
         
         await this.saveProfile(payload);
-        console.log("saveCurrentProgress: Save flow completed successfully.");
+        console.log("[Progression Flow] Step 3b (Persisted): Supabase database update resolved successfully.");
       } catch (err) {
-        console.error("Failed to save progress to Supabase:", err);
+        console.error("[Progression Flow] ERROR: Failed to save progress to Supabase:", err);
       }
     },
 
@@ -1082,17 +1083,20 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
     },
 
     addXp: function(amount) {
+      console.log(`[Progression Flow] Step 1 (Awarding): addXp called. Amount: ${amount}. Active Room: ${this.state.currentActiveRoom}`);
       // If we are currently replaying a completed room, block XP rewards (Practice mode)
       if (this.state.currentActiveRoom && this.state.completedRooms.includes(this.state.currentActiveRoom)) {
-        console.log(`Practice mode: XP reward of ${amount} XP blocked for Room ${this.state.currentActiveRoom}`);
+        console.log(`[Progression Flow] Practice mode block: XP reward of ${amount} XP blocked for Room ${this.state.currentActiveRoom} because it is already completed.`);
         return;
       }
       
       if (typeof this.state.totalXp === "undefined" || this.state.totalXp === null) {
         this.state.totalXp = this.calculateTotalXpFromLevelAndXp(this.state.level || 1, this.state.xp || 0);
+        console.log(`[Progression Flow] Initialized totalXp from database level-state: ${this.state.totalXp}`);
       }
       
       this.state.totalXp += amount;
+      console.log(`[Progression Flow] Cumulative totalXp calculated: ${this.state.totalXp}`);
       
       const stats = this.calculateLevelFromXp(this.state.totalXp);
       const oldLevel = this.state.level;
@@ -1100,19 +1104,24 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       this.state.level = stats.level;
       this.state.xp = stats.xp;
       this.state.maxXp = stats.maxXp;
+      console.log(`[Progression Flow] Step 2 (Recalculated): level: ${this.state.level}, xp: ${this.state.xp} / ${this.state.maxXp}`);
       
       if (this.state.level > oldLevel) {
+        console.log(`[Progression Flow] Step 2a (Level Up): Promotion detected! Level ${oldLevel} -> ${stats.level}`);
         // Level up trigger dialog alert
         setTimeout(() => {
           alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors have been unlocked for decryption. Simba is proud of your progress!`);
+          console.log(`[Progression Flow] Level Up alert shown. Re-triggering map states & save checks...`);
           this.updateHud();
-          this.updateMapStates(); // Sync map immediately on Level Up alert
+          this.updateMapStates();
           this.saveCurrentProgress();
         }, 800);
       }
       
+      console.log(`[Progression Flow] Step 4 (HUD & State Update): Updating HUD and rendering map states...`);
       this.updateHud();
       this.updateMapStates(); // Sync map immediately on gain of XP
+      
       this.saveCurrentProgress();
     },
 
