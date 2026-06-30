@@ -62,6 +62,7 @@
             this.state.maxXp = prof.maxxp || 500;
             this.state.score = prof.score || 0;
             this.state.completedRooms = prof.completedrooms || [];
+            console.log("Loaded:", this.state.completedRooms);
             this.state.badges = prof.badges || [];
             this.state.roomTimes = prof.roomtimes || {};
             this.state.classroomLinked = prof.classroomlinked || false;
@@ -85,6 +86,7 @@
         this.state.maxXp = 500;
         this.state.score = 0;
         this.state.completedRooms = [];
+        console.log("Loaded:", this.state.completedRooms);
         this.state.badges = [];
         this.state.roomTimes = {};
         this.state.classroomLinked = false;
@@ -163,6 +165,8 @@
         this.updateMapStates();
       } else if (viewId === "landing") {
         this.updateLandingAuthState();
+      } else if (viewId === "classroom") {
+        this.updateClassroomTab();
       }
     },
 
@@ -377,6 +381,7 @@
           classroomLinked: this.state.classroomLinked,
           classroomcode: this.state.classroomCode
         };
+        console.log("Saving:", payload.completedRooms);
         
         await this.saveProfile(payload);
         console.log("saveCurrentProgress: Save flow completed successfully.");
@@ -445,6 +450,7 @@
               this.state.maxXp = prof.maxxp || 500;
               this.state.score = prof.score || 0;
               this.state.completedRooms = prof.completedrooms || [];
+              console.log("After login:", this.state.completedRooms);
               this.state.badges = prof.badges || [];
               this.state.roomTimes = prof.roomtimes || {};
               this.state.classroomLinked = prof.classroomlinked || false;
@@ -729,6 +735,7 @@
        MAP STATES & ROOM TRIGGERS
        ========================================================================== */
     updateMapStates: function() {
+      console.log("Before render:", this.state.completedRooms);
       const nodes = document.querySelectorAll(".map-node");
       nodes.forEach(node => {
         const roomNum = parseInt(node.getAttribute("data-room"));
@@ -742,6 +749,19 @@
           if (statusEl) {
             statusEl.textContent = "COMPLETED";
             statusEl.className = "node-status text-green";
+          }
+        } else {
+          node.className = "map-node node-active";
+          if (statusEl) {
+            let statusText = "ACTIVE PREVIEW";
+            let accentColorClass = "text-cyan";
+            if (roomNum === 2) {
+              accentColorClass = "text-amber";
+            } else if (roomNum === 3) {
+              accentColorClass = "text-pink";
+            }
+            statusEl.textContent = statusText;
+            statusEl.className = `node-status ${accentColorClass}`;
           }
         }
       });
@@ -760,6 +780,17 @@
           lockedNode5.className = "map-node node-locked-ready";
           lockedNode5.querySelector(".node-status").textContent = "LEVEL 2 PASS - DECRYPTING SECTOR...";
           lockedNode5.querySelector(".node-status").className = "node-status text-amber";
+        }
+      } else {
+        if (lockedNode4) {
+          lockedNode4.className = "map-node node-locked";
+          lockedNode4.querySelector(".node-status").textContent = "LOCKED [LEVEL 2 Required]";
+          lockedNode4.querySelector(".node-status").className = "node-status text-red";
+        }
+        if (lockedNode5) {
+          lockedNode5.className = "map-node node-locked";
+          lockedNode5.querySelector(".node-status").textContent = "LOCKED [LEVEL 2 Required]";
+          lockedNode5.querySelector(".node-status").className = "node-status text-red";
         }
       }
       
@@ -783,6 +814,7 @@
           alert(`Mainframe Access Denied! 😾 This sector requires higher administrative ranks. Earn XP in playable rooms to level up!`);
         });
       });
+      console.log("After updateMapStates:", this.state.completedRooms);
     },
 
     enterRoom: function(roomNum) {
@@ -871,6 +903,7 @@
       if (!this.state.completedRooms.includes(activeRoom)) {
         this.state.completedRooms.push(activeRoom);
       }
+      console.log("After room complete:", this.state.completedRooms);
       
       const badgeObj = this.badgeDefinitions[activeRoom];
       if (badgeObj && !this.state.badges.includes(badgeObj.name)) {
@@ -976,17 +1009,39 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       document.getElementById("profileHighscore").textContent = String(this.state.score).padStart(5, '0');
 
       // 2. Badges unlocks
-      this.state.completedRooms.forEach(roomNum => {
+      for (let roomNum = 1; roomNum <= 3; roomNum++) {
         const badgeCard = document.getElementById(`badgeItem${roomNum}`);
         if (badgeCard) {
-          badgeCard.classList.remove("locked");
-          const dateEl = badgeCard.querySelector(".badge-date");
-          if (dateEl && dateEl.textContent === "LOCKED") {
-            dateEl.textContent = `UNLOCKED: ${this.state.roomTimes[roomNum] || "PASSED"}`;
-            dateEl.className = "badge-date text-green";
+          const isCleared = this.state.completedRooms.includes(roomNum);
+          if (isCleared) {
+            badgeCard.classList.remove("locked");
+            const dateEl = badgeCard.querySelector(".badge-date");
+            if (dateEl) {
+              dateEl.textContent = `UNLOCKED: ${this.state.roomTimes[roomNum] || "PASSED"}`;
+              dateEl.className = "badge-date text-green";
+            }
+          } else {
+            badgeCard.classList.add("locked");
+            const dateEl = badgeCard.querySelector(".badge-date");
+            if (dateEl) {
+              dateEl.textContent = "LOCKED";
+              dateEl.className = "badge-date";
+            }
           }
         }
-      });
+      }
+    },
+
+    updateClassroomTab: function() {
+      const statusEl = document.getElementById("activeClassStatus");
+      if (!statusEl) return;
+      if (this.state.classroomLinked && this.state.classroomCode) {
+        statusEl.innerHTML = `Linked connection active: Connected to <strong class="text-green">${this.state.classroomCode}</strong>! Simba is issuing decryption telemetry files directly to your educator console!`;
+        statusEl.className = "active-class-status text-green";
+      } else {
+        statusEl.innerHTML = `Not connected to an educator server node. Play as Guest or create custom speedrun trials!`;
+        statusEl.className = "active-class-status";
+      }
     },
 
     /* ==========================================================================
