@@ -77,21 +77,7 @@
         try {
           const prof = await this.loadProfile(activeUser);
           if (prof) {
-            this.state.username = activeUser;
-            this.state.score = prof.score || 0;
-            this.state.completedRooms = prof.completedrooms || [];
-            console.log("Loaded:", this.state.completedRooms);
-            this.state.badges = prof.badges || [];
-            this.state.roomTimes = prof.roomtimes || {};
-            this.state.classroomLinked = prof.classroomlinked || false;
-            this.state.classroomCode = prof.classroomcode || "";
-
-            // Recalculate level and XP dynamically from cumulative total XP
-            this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
-            const stats = this.calculateLevelFromXp(this.state.totalXp);
-            this.state.level = stats.level;
-            this.state.xp = stats.xp;
-            this.state.maxXp = stats.maxXp;
+            await this.updatePlayerProgress({ fromProfile: prof });
             
             // Auto-route to map hub on active session restoration
             setTimeout(() => {
@@ -105,18 +91,20 @@
           this.clearActiveSession();
         }
       } else if (activeUser === "SPECIALIST_GUEST") {
-        this.state.username = "SPECIALIST_GUEST";
-        this.state.level = 1;
-        this.state.xp = 0;
-        this.state.maxXp = 300;
-        this.state.totalXp = 0;
-        this.state.score = 0;
-        this.state.completedRooms = [];
-        console.log("Loaded:", this.state.completedRooms);
-        this.state.badges = [];
-        this.state.roomTimes = {};
-        this.state.classroomLinked = false;
-        this.state.classroomCode = "";
+        await this.updatePlayerProgress({
+          fromProfile: {
+            username: "SPECIALIST_GUEST",
+            level: 1,
+            xp: 0,
+            maxXp: 300,
+            score: 0,
+            completedRooms: [],
+            badges: [],
+            roomTimes: {},
+            classroomLinked: false,
+            classroomCode: ""
+          }
+        });
         
         setTimeout(() => {
           this.switchView("map");
@@ -469,23 +457,7 @@
               }
 
               const prof = authResult.profile;
-
-              // Restore player progress states
-              this.state.username = userVal;
-              this.state.score = prof.score || 0;
-              this.state.completedRooms = prof.completedrooms || [];
-              console.log("After login:", this.state.completedRooms);
-              this.state.badges = prof.badges || [];
-              this.state.roomTimes = prof.roomtimes || {};
-              this.state.classroomLinked = prof.classroomlinked || false;
-              this.state.classroomCode = prof.classroomcode || "";
-
-              // Recalculate level and XP dynamically from cumulative total XP
-              this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
-              const stats = this.calculateLevelFromXp(this.state.totalXp);
-              this.state.level = stats.level;
-              this.state.xp = stats.xp;
-              this.state.maxXp = stats.maxXp;
+              await this.updatePlayerProgress({ fromProfile: prof });
 
               this.setActiveSession(userVal);
               await this.loginSuccess(false);
@@ -561,17 +533,7 @@
               await this.registerProfile(newProfile);
 
               // Log in instantly
-              this.state.username = userVal;
-              this.state.level = 1;
-              this.state.xp = 0;
-              this.state.maxXp = 300;
-              this.state.totalXp = 0;
-              this.state.score = 0;
-              this.state.completedRooms = [];
-              this.state.badges = [];
-              this.state.roomTimes = {};
-              this.state.classroomLinked = false;
-              this.state.classroomCode = "";
+              await this.updatePlayerProgress({ fromProfile: newProfile });
 
               this.setActiveSession(userVal);
               await this.loginSuccess(true);
@@ -588,24 +550,25 @@
         }
       }
 
-      if (guestBtn) {
         guestBtn.addEventListener("click", async () => {
-          this.state.username = "SPECIALIST_GUEST";
-          this.state.level = 1;
-          this.state.xp = 0;
-          this.state.maxXp = 300;
-          this.state.totalXp = 0;
-          this.state.score = 0;
-          this.state.completedRooms = [];
-          this.state.badges = [];
-          this.state.roomTimes = {};
-          this.state.classroomLinked = false;
-          this.state.classroomCode = "";
+          await this.updatePlayerProgress({
+            fromProfile: {
+              username: "SPECIALIST_GUEST",
+              level: 1,
+              xp: 0,
+              maxXp: 300,
+              score: 0,
+              completedRooms: [],
+              badges: [],
+              roomTimes: {},
+              classroomLinked: false,
+              classroomCode: ""
+            }
+          });
           
           this.setActiveSession("SPECIALIST_GUEST");
           await this.loginSuccess(false);
         });
-      }
     },
 
     bindLogoutEvent: function() {
@@ -619,17 +582,20 @@
           this.clearActiveSession();
 
           // Wipe state back to default guest parameters
-          this.state.username = "GUEST_PLAYER";
-          this.state.level = 1;
-          this.state.xp = 0;
-          this.state.maxXp = 300;
-          this.state.totalXp = 0;
-          this.state.score = 0;
-          this.state.completedRooms = [];
-          this.state.badges = [];
-          this.state.roomTimes = {};
-          this.state.classroomLinked = false;
-          this.state.classroomCode = "";
+          await this.updatePlayerProgress({
+            fromProfile: {
+              username: "GUEST_PLAYER",
+              level: 1,
+              xp: 0,
+              maxXp: 300,
+              score: 0,
+              completedRooms: [],
+              badges: [],
+              roomTimes: {},
+              classroomLinked: false,
+              classroomCode: ""
+            }
+          });
 
           // Clear auth inputs
           const usernameInput = document.getElementById("usernameInput");
@@ -781,6 +747,138 @@
         total += getLimit(l);
       }
       return total;
+    },
+
+    updatePlayerProgress: async function(action) {
+      console.log("[Progression Engine] updatePlayerProgress invoked with action:", action);
+      
+      let stateChanged = false;
+      let levelUpDetected = false;
+      let oldLevel = this.state.level;
+      
+      // Case 1: Load/Restore from a Supabase profile record or reset state payload
+      if (action.fromProfile) {
+        const prof = action.fromProfile;
+        this.state.username = prof.username || this.state.username;
+        this.state.score = typeof prof.score === 'number' ? prof.score : this.state.score;
+        
+        let rawCompleted = prof.completedRooms || prof.completedrooms;
+        this.state.completedRooms = Array.isArray(rawCompleted) ? rawCompleted : [];
+        this.state.badges = Array.isArray(prof.badges) ? prof.badges : [];
+        
+        if (prof.roomtimes || prof.roomTimes) {
+          const rawTimes = prof.roomTimes || prof.roomtimes;
+          this.state.roomTimes = typeof rawTimes === 'string' ? JSON.parse(rawTimes) : rawTimes;
+        } else {
+          this.state.roomTimes = {};
+        }
+        
+        this.state.classroomLinked = !!(prof.classroomLinked || prof.classroomlinked);
+        this.state.classroomCode = prof.classroomCode || prof.classroomcode || "";
+        
+        // Calculate totalXp based on stored level and xp to avoid mismatch
+        this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
+        
+        stateChanged = true;
+      }
+      
+      // Case 2: Complete a Room
+      if (action.completeRoom) {
+        const roomId = action.completeRoom;
+        const isReplay = this.state.completedRooms.includes(roomId);
+        
+        if (action.roomTime) {
+          this.state.roomTimes[action.roomTime.room] = action.roomTime.time;
+        }
+        
+        if (!isReplay) {
+          this.state.completedRooms.push(roomId);
+          
+          // Award room-level badge
+          const badgeObj = this.badgeDefinitions[roomId];
+          if (badgeObj && !this.state.badges.includes(badgeObj.name)) {
+            this.state.badges.push(badgeObj.name);
+          }
+        }
+        stateChanged = true;
+      }
+      
+      // Case 3: Add XP directly (from mid-puzzle or flat room complete)
+      if (typeof action.addXp === 'number') {
+        const activeRoom = this.state.currentActiveRoom;
+        const isReplay = activeRoom && this.state.completedRooms.includes(activeRoom);
+        
+        if (isReplay) {
+          console.log(`[Progression Engine] Practice Mode: Blocked adding ${action.addXp} XP for Room ${activeRoom}`);
+        } else {
+          this.state.totalXp += action.addXp;
+          stateChanged = true;
+        }
+      }
+      
+      // Case 4: Add Score directly
+      if (typeof action.addScore === 'number') {
+        const activeRoom = this.state.currentActiveRoom;
+        const isReplay = activeRoom && this.state.completedRooms.includes(activeRoom);
+        
+        if (isReplay) {
+          console.log(`[Progression Engine] Practice Mode: Blocked adding ${action.addScore} Score for Room ${activeRoom}`);
+        } else {
+          this.state.score = Math.max(0, this.state.score + action.addScore);
+          stateChanged = true;
+        }
+      }
+      
+      // If any progress state has changed, recalculate levels & boundaries
+      if (stateChanged) {
+        const stats = this.calculateLevelFromXp(this.state.totalXp);
+        this.state.level = stats.level;
+        this.state.xp = stats.xp;
+        this.state.maxXp = stats.maxXp;
+        
+        if (this.state.level > oldLevel) {
+          levelUpDetected = true;
+        }
+        
+        // 1. Update HUD UI elements immediately
+        this.updateHud();
+        
+        // 2. Refresh profile panel badges immediately
+        this.updateProfileTab();
+        
+        // 3. Re-render the map nodes immediately
+        this.updateMapStates();
+        
+        // 4. Persist updated states to Supabase (if logged in)
+        const username = this.state.username;
+        if (username && username !== "GUEST_PLAYER" && username !== "SPECIALIST_GUEST" && username !== "SPECIALIST_GUEST_TEST") {
+          try {
+            const payload = {
+              username: username,
+              level: this.state.level,
+              xp: this.state.xp,
+              maxXp: this.state.maxXp,
+              score: this.state.score,
+              completedRooms: this.state.completedRooms,
+              badges: this.state.badges,
+              roomTimes: this.state.roomTimes,
+              classroomLinked: this.state.classroomLinked,
+              classroomCode: this.state.classroomCode
+            };
+            await this.saveProfile(payload);
+            console.log("[Progression Engine] Saved profile payload successfully.");
+          } catch (err) {
+            console.error("[Progression Engine] Failed to save profile to Supabase:", err);
+          }
+        }
+        
+        // If promoted, alert user
+        if (levelUpDetected) {
+          setTimeout(() => {
+            alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors have been unlocked for decryption. Simba is proud of your progress!`);
+          }, 400);
+        }
+      }
     },
 
     updateHud: function() {
@@ -1030,10 +1128,11 @@
           xpMetricVal.className = "value text-cyan";
         }
       }
-      
-      // Save stats to update XP/HUD and persist progress locally
-      this.updateHud();
-      this.saveCurrentProgress();
+      // Update progress through the progression engine
+      this.updatePlayerProgress({
+        completeRoom: activeRoom,
+        roomTime: { room: activeRoom, time: formattedTime }
+      });
       
       // Transition to Debrief Card
       this.switchView("debrief");
@@ -1072,57 +1171,11 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
        XP PROGRESSION CALCULATORS
        ========================================================================== */
     addScore: function(points) {
-      // If we are currently replaying a completed room, block score rewards (Practice mode)
-      if (this.state.currentActiveRoom && this.state.completedRooms.includes(this.state.currentActiveRoom)) {
-        console.log(`Practice mode: Score reward of ${points} points blocked for Room ${this.state.currentActiveRoom}`);
-        return;
-      }
-      this.state.score = Math.max(0, this.state.score + points);
-      this.updateHud();
-      this.saveCurrentProgress();
+      this.updatePlayerProgress({ addScore: points });
     },
 
     addXp: function(amount) {
-      console.log(`[Progression Flow] Step 1 (Awarding): addXp called. Amount: ${amount}. Active Room: ${this.state.currentActiveRoom}`);
-      // If we are currently replaying a completed room, block XP rewards (Practice mode)
-      if (this.state.currentActiveRoom && this.state.completedRooms.includes(this.state.currentActiveRoom)) {
-        console.log(`[Progression Flow] Practice mode block: XP reward of ${amount} XP blocked for Room ${this.state.currentActiveRoom} because it is already completed.`);
-        return;
-      }
-      
-      if (typeof this.state.totalXp === "undefined" || this.state.totalXp === null) {
-        this.state.totalXp = this.calculateTotalXpFromLevelAndXp(this.state.level || 1, this.state.xp || 0);
-        console.log(`[Progression Flow] Initialized totalXp from database level-state: ${this.state.totalXp}`);
-      }
-      
-      this.state.totalXp += amount;
-      console.log(`[Progression Flow] Cumulative totalXp calculated: ${this.state.totalXp}`);
-      
-      const stats = this.calculateLevelFromXp(this.state.totalXp);
-      const oldLevel = this.state.level;
-      
-      this.state.level = stats.level;
-      this.state.xp = stats.xp;
-      this.state.maxXp = stats.maxXp;
-      console.log(`[Progression Flow] Step 2 (Recalculated): level: ${this.state.level}, xp: ${this.state.xp} / ${this.state.maxXp}`);
-      
-      if (this.state.level > oldLevel) {
-        console.log(`[Progression Flow] Step 2a (Level Up): Promotion detected! Level ${oldLevel} -> ${stats.level}`);
-        // Level up trigger dialog alert
-        setTimeout(() => {
-          alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors have been unlocked for decryption. Simba is proud of your progress!`);
-          console.log(`[Progression Flow] Level Up alert shown. Re-triggering map states & save checks...`);
-          this.updateHud();
-          this.updateMapStates();
-          this.saveCurrentProgress();
-        }, 800);
-      }
-      
-      console.log(`[Progression Flow] Step 4 (HUD & State Update): Updating HUD and rendering map states...`);
-      this.updateHud();
-      this.updateMapStates(); // Sync map immediately on gain of XP
-      
-      this.saveCurrentProgress();
+      this.updatePlayerProgress({ addXp: amount });
     },
 
     /* ==========================================================================
@@ -1293,7 +1346,143 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
           }
         });
       }
-    }
+    },
+
+    runProgressionAudit: async function() {
+      console.log("%c=== CYBER ESCAPE PROGRESSION AUDIT ===", "color: #00ffff; font-weight: bold; font-size: 14px;");
+      
+      // Save current state to restore later
+      const originalState = JSON.parse(JSON.stringify(this.state));
+      
+      try {
+        // Reset state for simulation
+        this.state = {
+          username: "SPECIALIST_AUDIT_USER",
+          level: 1,
+          xp: 0,
+          maxXp: 300,
+          totalXp: 0,
+          score: 0,
+          completedRooms: [],
+          badges: [],
+          roomTimes: {},
+          currentActiveRoom: null
+        };
+        
+        const assert = (cond, msg) => {
+          if (!cond) {
+            console.error("  ❌ FAIL:", msg);
+            throw new Error("Audit failed on assertion: " + msg);
+          } else {
+            console.log("  %c✅ PASS: " + msg, "color: #00ff00;");
+          }
+        };
+        
+        // Simulating Room 1
+        console.log("--- Simulating Room 1 ---");
+        this.state.currentActiveRoom = 1;
+        await this.updatePlayerProgress({ addXp: 200 });
+        await this.updatePlayerProgress({ addScore: 400 });
+        await this.updatePlayerProgress({ completeRoom: 1 });
+        assert(this.state.level === 1, "Level after Room 1 is 1");
+        assert(this.state.xp === 200, "XP after Room 1 is 200/300");
+        assert(this.state.score === 400, "Score after Room 1 is 400");
+        assert(this.state.completedRooms.includes(1), "Room 1 completed flag set");
+        assert(this.canAccessRoom(4) === false, "Room 4 is locked");
+        
+        // Simulating Room 2
+        console.log("--- Simulating Room 2 ---");
+        this.state.currentActiveRoom = 2;
+        await this.updatePlayerProgress({ addXp: 150 });
+        await this.updatePlayerProgress({ addScore: 400 });
+        await this.updatePlayerProgress({ completeRoom: 2 });
+        assert(this.state.level === 2, "Level after Room 2 is 2 (level up)");
+        assert(this.state.xp === 50, "XP after Room 2 is 50/400");
+        assert(this.state.score === 800, "Score after Room 2 is 800");
+        assert(this.state.completedRooms.includes(2), "Room 2 completed flag set");
+        assert(this.canAccessRoom(4) === true, "Room 4 is unlocked");
+        assert(this.canAccessRoom(5) === true, "Room 5 is unlocked");
+        
+        // Simulating Room 3
+        console.log("--- Simulating Room 3 ---");
+        this.state.currentActiveRoom = 3;
+        await this.updatePlayerProgress({ addXp: 200 });
+        await this.updatePlayerProgress({ addScore: 400 });
+        await this.updatePlayerProgress({ completeRoom: 3 });
+        assert(this.state.level === 2, "Level after Room 3 is 2");
+        
+        // Simulating Room 4
+        console.log("--- Simulating Room 4 ---");
+        this.state.currentActiveRoom = 4;
+        await this.updatePlayerProgress({ addXp: 200 });
+        await this.updatePlayerProgress({ addScore: 400 });
+        await this.updatePlayerProgress({ completeRoom: 4 });
+        assert(this.state.level === 2, "Level after Room 4 is 2");
+        
+        // Simulating Room 5
+        console.log("--- Simulating Room 5 ---");
+        this.state.currentActiveRoom = 5;
+        await this.updatePlayerProgress({ addXp: 200 });
+        await this.updatePlayerProgress({ addScore: 500 });
+        await this.updatePlayerProgress({ completeRoom: 5 });
+        assert(this.state.level === 3, "Level after Room 5 is 3 (level up)");
+        assert(this.canAccessRoom(6) === true, "Room 6 is unlocked");
+        assert(this.canAccessRoom(7) === true, "Room 7 is unlocked");
+        
+        // Simulating Room 6
+        console.log("--- Simulating Room 6 ---");
+        this.state.currentActiveRoom = 6;
+        await this.updatePlayerProgress({ addXp: 150 });
+        await this.updatePlayerProgress({ addScore: 300 });
+        await this.updatePlayerProgress({ completeRoom: 6 });
+        assert(this.state.level === 3, "Level after Room 6 is 3");
+        
+        // Simulating Room 7
+        console.log("--- Simulating Room 7 ---");
+        this.state.currentActiveRoom = 7;
+        await this.updatePlayerProgress({ addXp: 150 });
+        await this.updatePlayerProgress({ addScore: 400 });
+        await this.updatePlayerProgress({ completeRoom: 7 });
+        assert(this.state.level === 4, "Level after Room 7 is 4 (level up)");
+        assert(this.canAccessRoom(8) === true, "Room 8 is unlocked");
+        assert(this.canAccessRoom(9) === true, "Room 9 is unlocked");
+        
+        // Simulating Room 8
+        console.log("--- Simulating Room 8 ---");
+        this.state.currentActiveRoom = 8;
+        await this.updatePlayerProgress({ addXp: 150 });
+        await this.updatePlayerProgress({ addScore: 300 });
+        await this.updatePlayerProgress({ completeRoom: 8 });
+        assert(this.state.level === 4, "Level after Room 8 is 4");
+        
+        // Simulating Room 9
+        console.log("--- Simulating Room 9 ---");
+        this.state.currentActiveRoom = 9;
+        await this.updatePlayerProgress({ addXp: 150 });
+        await this.updatePlayerProgress({ addScore: 450 });
+        await this.updatePlayerProgress({ completeRoom: 9 });
+        assert(this.state.level === 5, "Level after Room 9 is 5 (level up)");
+        assert(this.canAccessRoom(10) === true, "Room 10 is unlocked");
+        
+        // Simulating Room 10
+        console.log("--- Simulating Room 10 ---");
+        this.state.currentActiveRoom = 10;
+        await this.updatePlayerProgress({ addXp: 300 });
+        await this.updatePlayerProgress({ addScore: 600 });
+        await this.updatePlayerProgress({ completeRoom: 10 });
+        assert(this.state.completedRooms.length === 10, "All 10 rooms completed successfully!");
+        
+        console.log("%c=== AUDIT SUCCESS: ALL CHECKS PASSED ===", "color: #00ff00; font-weight: bold; font-size: 12px;");
+      } catch (err) {
+        console.error("Audit failed:", err);
+      } finally {
+        // Restore original state
+        this.state = originalState;
+        this.updateHud();
+        this.updateProfileTab();
+        this.updateMapStates();
+      }
+    },
   };
 
   // Register on window object
