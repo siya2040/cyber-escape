@@ -748,12 +748,18 @@
     calculateLevelFromXp: function(totalXp) {
       let lvl = 1;
       let tempXp = totalXp;
-      let currentMaxXp = 300; // Level 1 needs 300 XP
       
+      const getLimit = (l) => {
+        if (l === 1) return 300;
+        if (l === 2 || l === 3 || l === 4) return 400;
+        return 500;
+      };
+      
+      let currentMaxXp = getLimit(lvl);
       while (tempXp >= currentMaxXp) {
         tempXp -= currentMaxXp;
         lvl += 1;
-        currentMaxXp += 200; // Level 2 needs 500 XP, Level 3 needs 700 XP, etc.
+        currentMaxXp = getLimit(lvl);
       }
       
       return {
@@ -765,10 +771,14 @@
 
     calculateTotalXpFromLevelAndXp: function(level, levelXp) {
       let total = levelXp;
-      let currentMaxXp = 300;
+      const getLimit = (l) => {
+        if (l === 1) return 300;
+        if (l === 2 || l === 3 || l === 4) return 400;
+        return 500;
+      };
+      
       for (let l = 1; l < level; l++) {
-        total += currentMaxXp;
-        currentMaxXp += 200;
+        total += getLimit(l);
       }
       return total;
     },
@@ -986,7 +996,14 @@
       const equivTexts = {
         1: "Phishing emails target psychological response mechanisms rather than network protocols. Spotting domain mismatches, urgency triggers, and suspicious hyperlinks aligns with CompTIA Security+ Domain 1.1 (Threats, Attacks, & Vulnerabilities) and standard corporate defense audits!",
         2: "Brute-force password security relies heavily on character combinations and key entropy. Standard multi-character combinations scale password entropy exponentially, ensuring real-world protection aligned with NIST Special Publication 800-63B guidelines!",
-        3: "Decryption offsets and substitution ciphers form the foundational basis of modern asymmetric cryptographic principles. Understanding how shift rotations alter plaintexts directly maps to Security+ Domain 2.8 (Cryptography Concepts) and historical cybersecurity models!"
+        3: "Decryption offsets and substitution ciphers form the foundational basis of modern asymmetric cryptographic principles. Understanding how shift rotations alter plaintexts directly maps to Security+ Domain 2.8 (Cryptography Concepts) and historical cybersecurity models!",
+        4: "Malware analysis requires isolating trojans and understanding process signatures. Identifying malicious file paths and quarantine procedures is key to malware incident response.",
+        5: "Multi-Factor Authentication (MFA) push fatigue occurs when users approve spam prompt notifications. Time-based One-Time Passcodes (TOTP) eliminate push fatigue using synchronized time-based seeds.",
+        6: "Network switches rely on Access Control Lists (ACLs) to filter traffic. Blocking unauthorized port-level commands like SSH and reverse shells secures network routing perimeters.",
+        7: "Open Source Intelligence (OSINT) harvesting targets public metadata footprints. Rebuilding access logs from blog entries and leaked documents demonstrates social engineering vulnerability tracing.",
+        8: "SQL Injection (SQLi) attacks occur when unsanitized user inputs are executed directly as database queries. Parameterized queries and statement shielding neutralize these injection points.",
+        9: "The Diffie-Hellman protocol allows two parties to establish a shared cryptographic secret over an unsecure channel using modulo exponentiation, forming the foundation of TLS handshakes.",
+        10: "Prompt injection manipulates Large Language Models (LLMs) to bypass safety rules. Deploying input validation and sanitization filters prevents malicious system instructions override."
       };
       
       if (debriefEquiv) debriefEquiv.textContent = equivTexts[activeRoom] || "";
@@ -999,9 +1016,16 @@
           xpMetricVal.className = "value text-muted";
         } else {
           let xpAwarded = 150;
-          if (activeRoom === 1) xpAwarded = 200; // 4 emails x 50 XP
+          if (activeRoom === 1) xpAwarded = 200;
           if (activeRoom === 2) xpAwarded = 150;
           if (activeRoom === 3) xpAwarded = 200;
+          if (activeRoom === 4) xpAwarded = 200;
+          if (activeRoom === 5) xpAwarded = 200;
+          if (activeRoom === 6) xpAwarded = 150;
+          if (activeRoom === 7) xpAwarded = 150;
+          if (activeRoom === 8) xpAwarded = 150;
+          if (activeRoom === 9) xpAwarded = 150;
+          if (activeRoom === 10) xpAwarded = 300;
           xpMetricVal.textContent = `+${xpAwarded} XP`;
           xpMetricVal.className = "value text-cyan";
         }
