@@ -767,7 +767,7 @@
       this.mfaState.notifications.forEach(n => n.audited = false);
       
       this.mfaState.seed = Math.floor(1000 + Math.random() * 8000);
-      this.mfaState.seconds = Math.floor(10 + Math.random() * 45);
+      this.mfaState.seconds = new Date().getSeconds();
       
       // Update UI displays
       document.getElementById("mfaSeedVal").textContent = this.mfaState.seed;
@@ -790,7 +790,6 @@
       }
       
       this.renderMfaList();
-      this.startOtpTimer();
       
       this.updateSimbaDialog(`"MFA Fatigue Bombardment detected! 😾 Hackers are spamming Simba's console with approval requests. DENY the bad ones, and APPROVE your local session!"`, "normal");
     },
@@ -892,35 +891,11 @@
     },
 
     startOtpTimer: function() {
-      this.stopOtpTimer();
-      
-      this.mfaState.otpTimerInterval = setInterval(() => {
-        if (this.mfaState.seconds > 1) {
-          this.mfaState.seconds -= 1;
-          const secEl = document.getElementById("mfaSecondsVal");
-          if (secEl) secEl.textContent = this.mfaState.seconds;
-        } else {
-          // Regenerate new OTP values on expiry
-          this.mfaState.seconds = 30;
-          this.mfaState.seed = Math.floor(1000 + Math.random() * 8000);
-          
-          const seedEl = document.getElementById("mfaSeedVal");
-          const secEl = document.getElementById("mfaSecondsVal");
-          if (seedEl) seedEl.textContent = this.mfaState.seed;
-          if (secEl) secEl.textContent = this.mfaState.seconds;
-          
-          if (this.mfaState.isFatigueCleared) {
-            this.updateSimbaDialog(`"Time window expired! 😿 OTP seeds rotated. Check the new numbers and recalculate the formula!"`, "warn");
-          }
-        }
-      }, 1000);
+      // Offline/Static token generation. Seconds value frozen on load.
     },
 
     stopOtpTimer: function() {
-      if (this.mfaState.otpTimerInterval) {
-        clearInterval(this.mfaState.otpTimerInterval);
-        this.mfaState.otpTimerInterval = null;
-      }
+      // Offline/Static token generation. Seconds value frozen on load.
     },
 
     bindMfaEvents: function() {
@@ -949,7 +924,7 @@
             if (window.CyberGame) {
               window.CyberGame.addScore(-20);
             }
-            this.updateSimbaDialog(`"Buzzz! 😾 OTP Sync check failed. The dynamic code entered is incorrect or has expired. Try again!"`, "error");
+            this.updateSimbaDialog(`"Buzzz! 😾 OTP Sync check failed. The code entered is incorrect. Try again!"`, "error");
           }
         });
       }
