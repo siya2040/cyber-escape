@@ -11,7 +11,8 @@
       username: "GUEST_PLAYER",
       level: 1,
       xp: 0,
-      maxXp: 500,
+      maxXp: 300,
+      totalXp: 0,
       score: 0,
       completedRooms: [],
       badges: [],
@@ -59,9 +60,6 @@
           const prof = await this.loadProfile(activeUser);
           if (prof) {
             this.state.username = activeUser;
-            this.state.level = prof.level || 1;
-            this.state.xp = prof.xp || 0;
-            this.state.maxXp = prof.maxxp || 500;
             this.state.score = prof.score || 0;
             this.state.completedRooms = prof.completedrooms || [];
             console.log("Loaded:", this.state.completedRooms);
@@ -69,6 +67,13 @@
             this.state.roomTimes = prof.roomtimes || {};
             this.state.classroomLinked = prof.classroomlinked || false;
             this.state.classroomCode = prof.classroomcode || "";
+
+            // Recalculate level and XP dynamically from cumulative total XP
+            this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
+            const stats = this.calculateLevelFromXp(this.state.totalXp);
+            this.state.level = stats.level;
+            this.state.xp = stats.xp;
+            this.state.maxXp = stats.maxXp;
             
             // Auto-route to map hub on active session restoration
             setTimeout(() => {
@@ -85,7 +90,8 @@
         this.state.username = "SPECIALIST_GUEST";
         this.state.level = 1;
         this.state.xp = 0;
-        this.state.maxXp = 500;
+        this.state.maxXp = 300;
+        this.state.totalXp = 0;
         this.state.score = 0;
         this.state.completedRooms = [];
         console.log("Loaded:", this.state.completedRooms);
@@ -447,9 +453,6 @@
 
               // Restore player progress states
               this.state.username = userVal;
-              this.state.level = prof.level || 1;
-              this.state.xp = prof.xp || 0;
-              this.state.maxXp = prof.maxxp || 500;
               this.state.score = prof.score || 0;
               this.state.completedRooms = prof.completedrooms || [];
               console.log("After login:", this.state.completedRooms);
@@ -457,6 +460,13 @@
               this.state.roomTimes = prof.roomtimes || {};
               this.state.classroomLinked = prof.classroomlinked || false;
               this.state.classroomCode = prof.classroomcode || "";
+
+              // Recalculate level and XP dynamically from cumulative total XP
+              this.state.totalXp = this.calculateTotalXpFromLevelAndXp(prof.level || 1, prof.xp || 0);
+              const stats = this.calculateLevelFromXp(this.state.totalXp);
+              this.state.level = stats.level;
+              this.state.xp = stats.xp;
+              this.state.maxXp = stats.maxXp;
 
               this.setActiveSession(userVal);
               await this.loginSuccess(false);
@@ -520,7 +530,7 @@
                 passcode: passVal,
                 level: 1,
                 xp: 0,
-                maxXp: 500,
+                maxXp: 300,
                 score: 0,
                 completedRooms: [],
                 badges: [],
@@ -535,7 +545,8 @@
               this.state.username = userVal;
               this.state.level = 1;
               this.state.xp = 0;
-              this.state.maxXp = 500;
+              this.state.maxXp = 300;
+              this.state.totalXp = 0;
               this.state.score = 0;
               this.state.completedRooms = [];
               this.state.badges = [];
@@ -563,7 +574,8 @@
           this.state.username = "SPECIALIST_GUEST";
           this.state.level = 1;
           this.state.xp = 0;
-          this.state.maxXp = 500;
+          this.state.maxXp = 300;
+          this.state.totalXp = 0;
           this.state.score = 0;
           this.state.completedRooms = [];
           this.state.badges = [];
@@ -591,7 +603,8 @@
           this.state.username = "GUEST_PLAYER";
           this.state.level = 1;
           this.state.xp = 0;
-          this.state.maxXp = 500;
+          this.state.maxXp = 300;
+          this.state.totalXp = 0;
           this.state.score = 0;
           this.state.completedRooms = [];
           this.state.badges = [];
@@ -711,6 +724,34 @@
         // Re-bind the auth event listeners since the nodes were recreated
         this.bindAuthEvents();
       }
+    },
+
+    calculateLevelFromXp: function(totalXp) {
+      let lvl = 1;
+      let tempXp = totalXp;
+      let currentMaxXp = 300; // Level 1 needs 300 XP
+      
+      while (tempXp >= currentMaxXp) {
+        tempXp -= currentMaxXp;
+        lvl += 1;
+        currentMaxXp += 200; // Level 2 needs 500 XP, Level 3 needs 700 XP, etc.
+      }
+      
+      return {
+        level: lvl,
+        xp: tempXp,
+        maxXp: currentMaxXp
+      };
+    },
+
+    calculateTotalXpFromLevelAndXp: function(level, levelXp) {
+      let total = levelXp;
+      let currentMaxXp = 300;
+      for (let l = 1; l < level; l++) {
+        total += currentMaxXp;
+        currentMaxXp += 200;
+      }
+      return total;
     },
 
     updateHud: function() {
@@ -1046,22 +1087,30 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
         console.log(`Practice mode: XP reward of ${amount} XP blocked for Room ${this.state.currentActiveRoom}`);
         return;
       }
-      this.state.xp += amount;
       
-      // Level Up checks
-      if (this.state.xp >= this.state.maxXp) {
-        this.state.xp -= this.state.maxXp;
-        this.state.level += 1;
-        this.state.maxXp += 250; // Scaling complexity
-        
+      if (typeof this.state.totalXp === "undefined" || this.state.totalXp === null) {
+        this.state.totalXp = this.calculateTotalXpFromLevelAndXp(this.state.level || 1, this.state.xp || 0);
+      }
+      
+      this.state.totalXp += amount;
+      
+      const stats = this.calculateLevelFromXp(this.state.totalXp);
+      const oldLevel = this.state.level;
+      
+      this.state.level = stats.level;
+      this.state.xp = stats.xp;
+      this.state.maxXp = stats.maxXp;
+      
+      if (this.state.level > oldLevel) {
         // Level up trigger dialog alert
         setTimeout(() => {
-          alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors 04 & 05 have been unlocked for decryption. Simba is proud of your progress!`);
+          alert(`LEVEL UP! 😻 Specialist ${this.state.username} has reached System Level ${this.state.level}! Locked sectors have been unlocked for decryption. Simba is proud of your progress!`);
           this.updateHud();
           this.updateMapStates(); // Sync map immediately on Level Up alert
           this.saveCurrentProgress();
         }, 800);
       }
+      
       this.updateHud();
       this.updateMapStates(); // Sync map immediately on gain of XP
       this.saveCurrentProgress();
