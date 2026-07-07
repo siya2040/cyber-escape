@@ -780,7 +780,7 @@
         // Calculate totalXp deterministically on load from completed rooms to avoid any database race condition mismatch
         let calculatedTotalXp = 0;
         this.state.completedRooms.forEach(roomId => {
-          const rConfig = this.roomsConfig.find(rc => rc.room === roomId);
+          const rConfig = this.roomsConfig.find(rc => Number(rc.room) === Number(roomId));
           if (rConfig) {
             calculatedTotalXp += rConfig.xpReward || 150;
           }
