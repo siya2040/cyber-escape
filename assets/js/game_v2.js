@@ -848,7 +848,7 @@
         this.state.xp = stats.xp;
         this.state.maxXp = stats.maxXp;
         
-        if (this.state.level > oldLevel) {
+        if (!action.fromProfile && this.state.level > oldLevel) {
           levelUpDetected = true;
         }
         
