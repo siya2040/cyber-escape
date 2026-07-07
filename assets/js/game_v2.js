@@ -149,6 +149,12 @@
        ROUTING & NAV CHUNKS
        ========================================================================== */
     switchView: function(viewId) {
+      if (viewId === "landing") {
+        document.body.classList.add("view-landing-active");
+      } else {
+        document.body.classList.remove("view-landing-active");
+      }
+
       // Hide all panels, activate targeted ID
       const views = document.querySelectorAll(".game-view");
       views.forEach(view => {
