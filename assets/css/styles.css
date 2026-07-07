@@ -1889,47 +1889,230 @@ body.scanlines-active::after {
 /* ==========================================================================
    MINECRAFT / RETRO PIXEL GAME AESTHETICS OVERRIDES
    ========================================================================== */
-.cyber-btn {
+body {
+  background-color: #121316 !important;
+  background-image: 
+    linear-gradient(45deg, #090a0c 25%, transparent 25%), 
+    linear-gradient(-45deg, #090a0c 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #090a0c 75%), 
+    linear-gradient(-45deg, transparent 75%, #090a0c 75%) !important;
+  background-size: 32px 32px !important;
+  background-position: 0 0, 0 16px, 16px -16px, -16px 0px !important;
+  image-rendering: pixelated !important;
+}
+
+/* Authentic Minecraft GUI Panel Bevel Styling */
+.sidebar-user-info, .hud-card, .dashboard-card, .debrief-card, .profile-details-card, .badge-card, .process-header-card, .mfa-sync-panel, .mfa-fatigue-panel, .mfa-sync-formula-box, .mfa-card, .mfa-input-group, .process-details-panel, .inbox-details-panel, .dialog-box {
+  background: #2e2f34 !important;
+  border: 4px solid #000 !important;
+  box-shadow: 
+    inset -4px -4px 0px #18191c,
+    inset 4px 4px 0px #4a4b51,
+    6px 6px 0px rgba(0, 0, 0, 0.5) !important;
   border-radius: 0 !important;
-  border: 3px solid currentColor !important;
-  box-shadow: 4px 4px 0px #000 !important;
-  font-size: 10px !important;
+}
+
+/* RPG Obsidian Purple Dialog Box */
+.dialog-box {
+  background: #120b1c !important;
+  border: 4px solid #4a127a !important;
+  box-shadow: 
+    inset -4px -4px 0px #0a0610,
+    inset 4px 4px 0px #7b27c7,
+    6px 6px 0px rgba(0, 0, 0, 0.5) !important;
+}
+.dialog-text {
+  color: #55ff55 !important;
+  text-shadow: 1px 1px 0px #000 !important;
+}
+
+/* Cyber Button overrides to match Minecraft grey/gold menu buttons */
+.cyber-btn {
+  background: #3e3f45 !important;
+  border: 3px solid #000 !important;
+  box-shadow: 
+    inset -3px -3px 0px #25262a,
+    inset 3px 3px 0px #5e5f67,
+    3px 3px 0px #000 !important;
+  color: #fff !important;
   font-family: var(--font-heading) !important;
+  font-size: 10px !important;
+  text-shadow: 2px 2px 0px #000 !important;
+  border-radius: 0 !important;
   transition: none !important;
+  padding: 10px 16px !important;
 }
 .cyber-btn:hover:not(:disabled) {
-  background: rgba(0, 255, 255, 0.15) !important;
-  box-shadow: 6px 6px 0px #000 !important;
-  transform: translate(-2px, -2px) !important;
+  background: #4e4f55 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  box-shadow: 
+    inset -3px -3px 0px #2e2f34,
+    inset 3px 3px 0px #6e6f77,
+    3px 3px 0px #000 !important;
+  transform: none !important;
 }
 .cyber-btn:active:not(:disabled) {
-  box-shadow: 2px 2px 0px #000 !important;
-  transform: translate(2px, 2px) !important;
+  background: #ffaa00 !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  text-shadow: none !important;
+  box-shadow: 
+    inset -3px -3px 0px #b87b00,
+    inset 3px 3px 0px #ffcc66 !important;
 }
-.border-green:hover:not(:disabled) { background: rgba(0, 255, 0, 0.15) !important; }
-.border-red:hover:not(:disabled) { background: rgba(255, 51, 51, 0.15) !important; }
-.border-pink:hover:not(:disabled) { background: rgba(255, 0, 255, 0.15) !important; }
-.border-amber:hover:not(:disabled) { background: rgba(255, 170, 0, 0.15) !important; }
+.cyber-btn:disabled {
+  background: #25262a !important;
+  border-color: #444 !important;
+  color: #555 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
 
-.sidebar-user-info, .sidebar-nav .nav-btn, .hud-card, .dashboard-card, .map-node, .debrief-card, .profile-details-card, .badge-card, .inbox-item, .process-header-card, .process-item, .mfa-sync-panel, .mfa-fatigue-panel, .mfa-sync-formula-box, .mfa-card, .mfa-input-group, .process-details-panel, .inbox-details-panel, .dialog-box {
+/* Specific button borders overrides */
+.border-green { border-color: #00aa00 !important; color: #55ff55 !important; }
+.border-green:active:not(:disabled) { background: #55ff55 !important; color: #000 !important; }
+.border-red { border-color: #aa0000 !important; color: #ff5555 !important; }
+.border-red:active:not(:disabled) { background: #ff5555 !important; color: #000 !important; }
+
+/* Minecraft Tiled Sidebar Navigation Menu Buttons */
+.game-sidebar {
+  background: #25262a !important;
+  border-right: 4px solid #000 !important;
+  box-shadow: inset -4px 0px 0px #151619 !important;
+  padding: 20px 10px !important;
+}
+.sidebar-user {
+  background: #18191c !important;
+  border: 3px solid #000 !important;
+  box-shadow: 
+    inset -3px -3px 0px #0f1012,
+    inset 3px 3px 0px #2e2f34 !important;
+  padding: 10px !important;
+  margin: 0 8px 16px 8px !important;
   border-radius: 0 !important;
-  border: 3px solid rgba(0, 255, 255, 0.25) !important;
-  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.6) !important;
 }
-/* Blocky accent variations */
-.border-green, .cleared {
-  border-color: var(--cyber-green) !important;
+.sidebar-nav .nav-btn {
+  background: #3e3f45 !important;
+  border: 3px solid #000 !important;
+  box-shadow: 
+    inset -3px -3px 0px #25262a,
+    inset 3px 3px 0px #5e5f67 !important;
+  color: #c0c1c5 !important;
+  border-radius: 0 !important;
+  margin: 0 8px 8px 8px !important;
+  padding: 12px 14px !important;
+  font-family: var(--font-heading) !important;
+  font-size: 10px !important;
+  text-shadow: 2px 2px 0px #000 !important;
+  width: calc(100% - 16px) !important;
+  transition: none !important;
+  border-left: 3px solid #000 !important;
 }
-.border-red {
-  border-color: var(--cyber-red) !important;
+.sidebar-nav .nav-btn:hover {
+  background: #4e4f55 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  padding-left: 14px !important;
+  box-shadow: 
+    inset -3px -3px 0px #2e2f34,
+    inset 3px 3px 0px #6e6f77 !important;
+  transform: scale(1.02) !important;
 }
-.border-pink {
-  border-color: var(--cyber-pink) !important;
+.sidebar-nav .nav-btn.active {
+  background: #ffaa00 !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  text-shadow: none !important;
+  box-shadow: 
+    inset -3px -3px 0px #b87b00,
+    inset 3px 3px 0px #ffcc66 !important;
 }
-.border-amber {
-  border-color: var(--cyber-amber) !important;
+.sidebar-nav .nav-btn:hover .icon {
+  transform: none !important;
 }
 
+/* Minecraft Header Gamebar */
+.game-header {
+  background-color: #2b2c30 !important;
+  border-bottom: 4px solid #000 !important;
+  box-shadow: inset 0 -4px 0px #18191c !important;
+}
+
+/* Square Inventory Map Grid Nodes */
+.city-map-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  gap: 20px !important;
+  padding: 10px !important;
+}
+.map-node {
+  background: #18191c !important;
+  border: 4px solid #000 !important;
+  box-shadow: 
+    inset 4px 4px 0px #111214,
+    inset -4px -4px 0px #2e2f34 !important;
+  border-radius: 0 !important;
+  aspect-ratio: 1 / 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  padding: 16px !important;
+  transition: transform 0.1s ease !important;
+}
+.map-node:hover {
+  background: #25262a !important;
+  transform: scale(1.05) !important;
+  border-color: #ffaa00 !important;
+  box-shadow: 
+    inset 4px 4px 0px #1c1d21,
+    inset -4px -4px 0px #3e3f45,
+    6px 6px 0px rgba(0, 0, 0, 0.4) !important;
+}
+.map-node.cleared {
+  background: #1c2e1c !important;
+  border-color: #55ff55 !important;
+  box-shadow: 
+    inset 4px 4px 0px #121e12,
+    inset -4px -4px 0px #284428 !important;
+}
+.map-node.cleared:hover {
+  border-color: #88ff88 !important;
+}
+.map-node.node-locked {
+  background: #141416 !important;
+  border-color: #444 !important;
+  opacity: 0.55 !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+/* Inboxes and Processes items as slots lists */
+.inbox-item, .process-item {
+  background: #1c1d21 !important;
+  border: 3px solid #000 !important;
+  box-shadow: 
+    inset 3px 3px 0px #111214,
+    inset -3px -3px 0px #28292e !important;
+  border-radius: 0 !important;
+  margin-bottom: 10px !important;
+  transition: none !important;
+}
+.inbox-item:hover, .process-item:hover {
+  border-color: #ffaa00 !important;
+  background: #222329 !important;
+}
+.inbox-item.selected, .process-item.selected {
+  background: #2a2c35 !important;
+  border-color: #ffaa00 !important;
+  box-shadow: 
+    inset 3px 3px 0px #1b1c21,
+    inset -3px -3px 0px #3d404d !important;
+}
+
+/* Inputs styling */
 .custom-input {
   border-radius: 0 !important;
   border: 3px solid var(--cyber-cyan) !important;
@@ -1938,6 +2121,40 @@ body.scanlines-active::after {
   font-family: var(--font-body) !important;
 }
 
+/* Minecraft-style XP / Experience Bar */
+.xp-bar-container {
+  border-radius: 0 !important;
+  border: 2px solid #000 !important;
+  background: #313131 !important;
+  height: 16px !important;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.4) !important;
+  overflow: hidden !important;
+  padding: 1px !important;
+}
+.xp-bar-fill {
+  border-radius: 0 !important;
+  background: #55ff55 !important;
+  box-shadow: inset 0 -3px 0 rgba(0, 180, 0, 0.4) !important;
+  height: 100% !important;
+}
+.profile-xp-bar-container {
+  border-radius: 0 !important;
+  border: 2px solid #000 !important;
+  background: #313131 !important;
+  height: 16px !important;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.4) !important;
+  overflow: hidden !important;
+  padding: 1px !important;
+  margin-top: 8px;
+}
+.profile-xp-bar-fill {
+  border-radius: 0 !important;
+  background: #55ff55 !important;
+  box-shadow: inset 0 -3px 0 rgba(0, 180, 0, 0.4) !important;
+  height: 100% !important;
+}
+
+/* Size and layout alignment tweaks */
 h1, h2, h3, .font-heading, .terminal-label, .hud-card .label, .hud-card .value, .node-name, .node-status, .badge-name, .inbox-title, .process-title {
   letter-spacing: 0.5px !important;
   text-transform: uppercase !important;
@@ -1968,48 +2185,5 @@ h1, h2, h3, .font-heading, .terminal-label, .hud-card .label, .hud-card .value, 
   font-size: 11px !important;
 }
 
-.map-node {
-  border-radius: 0 !important;
-  border: 3px solid var(--card-accent, var(--cyber-cyan)) !important;
-  box-shadow: 5px 5px 0px #000 !important;
-  transition: transform 0.1s ease !important;
-}
-.map-node:hover {
-  transform: translate(-2px, -2px) !important;
-  box-shadow: 7px 7px 0px #000 !important;
-}
-
-/* Minecraft-style XP / Experience Bar */
-.xp-bar-container {
-  border-radius: 0 !important;
-  border: 2px solid #000 !important;
-  background: #313131 !important;
-  height: 16px !important;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.4) !important;
-  overflow: hidden !important;
-  padding: 1px !important;
-}
-.xp-bar-fill {
-  border-radius: 0 !important;
-  background: #55ff55 !important; /* Minecraft XP Green */
-  box-shadow: inset 0 -3px 0 rgba(0, 180, 0, 0.4) !important;
-  height: 100% !important;
-}
-.profile-xp-bar-container {
-  border-radius: 0 !important;
-  border: 2px solid #000 !important;
-  background: #313131 !important;
-  height: 16px !important;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.4) !important;
-  overflow: hidden !important;
-  padding: 1px !important;
-  margin-top: 8px;
-}
-.profile-xp-bar-fill {
-  border-radius: 0 !important;
-  background: #55ff55 !important;
-  box-shadow: inset 0 -3px 0 rgba(0, 180, 0, 0.4) !important;
-  height: 100% !important;
-}
 
 
