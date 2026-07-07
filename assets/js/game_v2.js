@@ -143,6 +143,11 @@
       
       // Auto-toggle Scanline overlays on bootup
       document.body.classList.add("scanlines-active");
+      
+      // Set initial view if no session is active
+      if (!activeUser) {
+        this.switchView("landing");
+      }
     },
 
     /* ==========================================================================

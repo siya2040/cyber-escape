@@ -2325,6 +2325,18 @@ body.view-landing-active .cyber-btn:active {
     inset 3px 3px 0px #ffe680 !important;
 }
 
+/* Bulletproof view switcher visibility rules */
+.game-view:not(.active) {
+  display: none !important;
+}
+#view-landing:not(.active) {
+  display: none !important;
+}
+#view-landing.active {
+  display: flex !important;
+}
+
+
 
 
 
