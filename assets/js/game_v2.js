@@ -35,9 +35,9 @@
     roomsConfig: [
       { room: 1, title: "Phishing Firewall", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📧", requiredLevel: 1, xpReward: 200, scoreReward: 400 },
       { room: 2, title: "Password Crypt", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🔑", requiredLevel: 1, xpReward: 150, scoreReward: 400 },
-      { room: 3, title: "Cipher Console", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "💻", requiredLevel: 1, xpReward: 200, scoreReward: 400 },
+      { room: 3, title: "Cipher Console", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "💻", requiredLevel: 1, xpReward: 200, scoreReward: 500 },
       { room: 4, title: "Malware Lab", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "🦠", requiredLevel: 2, xpReward: 200, scoreReward: 400 },
-      { room: 5, title: "MFA Database", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🔐", requiredLevel: 2, xpReward: 200, scoreReward: 500 },
+      { room: 5, title: "MFA Database", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🔐", requiredLevel: 2, xpReward: 200, scoreReward: 800 },
       { room: 6, title: "Network Switch", accent: "var(--cyber-cyan)", glow: "rgba(0, 255, 255, 0.15)", accentClass: "text-cyan", icon: "📡", requiredLevel: 3, xpReward: 150, scoreReward: 300 },
       { room: 7, title: "OSINT Intranet", accent: "var(--cyber-amber)", glow: "rgba(255, 170, 0, 0.15)", accentClass: "text-amber", icon: "🕵️", requiredLevel: 3, xpReward: 150, scoreReward: 400 },
       { room: 8, title: "Dark Web Hub", accent: "var(--cyber-pink)", glow: "rgba(255, 0, 255, 0.15)", accentClass: "text-pink", icon: "🧅", requiredLevel: 4, xpReward: 150, scoreReward: 300 },
@@ -1207,7 +1207,7 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       if (this.state.level >= 3) rank = "MAINFRAME_CRACKER";
       document.getElementById("profileRank").textContent = rank;
       
-      document.getElementById("profileTotalXp").textContent = `${this.state.xp} / ${this.state.maxXp} XP (Level ${this.state.level})`;
+      document.getElementById("profileTotalXp").textContent = `${this.state.totalXp} XP (Level ${this.state.level} - ${this.state.xp} / ${this.state.maxXp} XP)`;
       document.getElementById("profileCompletedCount").textContent = `${this.state.completedRooms.length} / 10 Escape Rooms`;
       document.getElementById("profileHighscore").textContent = String(this.state.score).padStart(5, '0');
 
