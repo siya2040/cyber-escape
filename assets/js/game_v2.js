@@ -912,10 +912,16 @@
       // HUD Stats
       document.getElementById("hudLevelVal").textContent = this.state.level;
       document.getElementById("hudScoreVal").textContent = String(this.state.score).padStart(5, '0');
-      document.getElementById("hudXpVal").textContent = `${this.state.xp} / ${this.state.maxXp} XP`;
       
-      const xpPercent = Math.min((this.state.xp / this.state.maxXp) * 100, 100);
-      document.getElementById("hudXpBar").style.width = `${xpPercent}%`;
+      const allDone = this.state.completedRooms.length === 10;
+      if (allDone) {
+        document.getElementById("hudXpVal").textContent = "SYSTEM SECURED 😻";
+        document.getElementById("hudXpBar").style.width = "100%";
+      } else {
+        document.getElementById("hudXpVal").textContent = `${this.state.xp} / ${this.state.maxXp} XP`;
+        const xpPercent = Math.min((this.state.xp / this.state.maxXp) * 100, 100);
+        document.getElementById("hudXpBar").style.width = `${xpPercent}%`;
+      }
     },
 
     /* ==========================================================================
@@ -1207,7 +1213,19 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       if (this.state.level >= 3) rank = "MAINFRAME_CRACKER";
       document.getElementById("profileRank").textContent = rank;
       
-      document.getElementById("profileTotalXp").textContent = `${this.state.totalXp} XP (Level ${this.state.level} - ${this.state.xp} / ${this.state.maxXp} XP)`;
+      const allDone = this.state.completedRooms.length === 10;
+      if (allDone) {
+        document.getElementById("profileTotalXp").textContent = `1850 XP (Level 5 - SYSTEM SECURED 😻)`;
+        if (document.getElementById("profileXpBar")) {
+          document.getElementById("profileXpBar").style.width = "100%";
+        }
+      } else {
+        document.getElementById("profileTotalXp").textContent = `${this.state.totalXp} XP (Level ${this.state.level} - ${this.state.xp} / ${this.state.maxXp} XP)`;
+        const xpPercent = Math.min((this.state.xp / this.state.maxXp) * 100, 100);
+        if (document.getElementById("profileXpBar")) {
+          document.getElementById("profileXpBar").style.width = `${xpPercent}%`;
+        }
+      }
       document.getElementById("profileCompletedCount").textContent = `${this.state.completedRooms.length} / 10 Escape Rooms`;
       document.getElementById("profileHighscore").textContent = String(this.state.score).padStart(5, '0');
 

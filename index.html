@@ -9,7 +9,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Outfit:wght@300;400;500;700;900&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
   
   <!-- Game CSS -->
   <link rel="stylesheet" href="assets/css/styles.css">
@@ -707,9 +707,14 @@
                 <span class="label">NETWORK RANK:</span>
                 <span class="value text-pink" id="profileRank">CYBER_CADET</span>
               </div>
-              <div class="stat-row">
-                <span class="label">TOTAL XP ACCUMULATION:</span>
-                <span class="value text-cyan" id="profileTotalXp">50 XP</span>
+              <div class="stat-row" style="flex-direction: column; align-items: stretch; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                  <span class="label">TOTAL XP ACCUMULATION:</span>
+                  <span class="value text-cyan" id="profileTotalXp">50 XP</span>
+                </div>
+                <div class="profile-xp-bar-container" style="width: 100%; margin-top: 6px;">
+                  <div class="profile-xp-bar-fill" id="profileXpBar" style="width: 10%;"></div>
+                </div>
               </div>
               <div class="stat-row">
                 <span class="label">COMPLETED ESCAPE ROOMS:</span>
@@ -874,7 +879,7 @@
   <!-- Supabase & Custom Scripting Nodes -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase.js?v=2"></script>
-  <script src="assets/js/puzzles_v2.js?v=5"></script>
-  <script src="assets/js/game_v2.js?v=5"></script>
+  <script src="assets/js/puzzles_v2.js?v=6"></script>
+  <script src="assets/js/game_v2.js?v=6"></script>
 </body>
 </html>
