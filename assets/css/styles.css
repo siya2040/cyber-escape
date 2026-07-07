@@ -2185,13 +2185,19 @@ h1, h2, h3, .font-heading, .terminal-label, .hud-card .label, .hud-card .value, 
   font-size: 11px !important;
 }
 
+.game-main-content:has(#view-landing.active) {
+  padding: 0 !important;
+}
+
 /* Landing Page Minecraft Sunset Backdrop styling */
 #view-landing {
-  background: url('../minecraft_sunset_bg.png') no-repeat center center/cover !important;
+  background: url('https://siya2040.github.io/cyber-escape/assets/minecraft_sunset_bg.png') no-repeat center center/cover !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   min-height: calc(100vh - var(--header-height)) !important;
+  width: 100% !important;
+  height: 100% !important;
   padding: 40px !important;
   position: relative;
 }
