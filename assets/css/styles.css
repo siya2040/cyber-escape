@@ -2203,7 +2203,7 @@ body.view-landing-active #view-landing {
   max-width: none !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: url('../minecraft_sunset_bg.png') no-repeat center center/cover !important;
+  background: url('../minecraft_sunset_bg.png?v=11') no-repeat center center/cover !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
