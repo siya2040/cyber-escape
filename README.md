@@ -45,8 +45,9 @@ This repository contains the **complete playable single-page web game applicatio
 
 ## 🚀 How to Run the Game with Java Spring Boot Backend
 
-### 1. Start the Java Spring Boot Backend
-To run the database, leaderboard sync, and user profile authentication:
+### Option A: Local Development (Offline Mode)
+
+#### 1. Start your local Java backend:
 1. Open a terminal and navigate to the `backend/` directory:
    ```bash
    cd backend
@@ -60,15 +61,50 @@ To run the database, leaderboard sync, and user profile authentication:
      ```bash
      ./gradlew bootRun
      ```
-3. The server will start and listen on `http://localhost:8080`.
-4. You can access the **H2 Database Console** to view and query your data:
-   * **Console URL**: `http://localhost:8080/h2-console`
-   * **JDBC URL**: `jdbc:h2:file:./data/cyberescape`
-   * **Username**: `sa` (Leave password blank)
+3. The server will start on `http://localhost:8080` and persist data locally to `./data/cyberescape`.
+4. H2 Console is accessible locally at `http://localhost:8080/h2-console`.
 
-### 2. Launch the Frontend Game Client
-1. Double-click **`index.html`** in your file manager to open it in any modern web browser (Google Chrome, Brave, Firefox, Edge, Safari).
-2. The game client will automatically detect and integrate with your local running Java Spring Boot backend. All registered profiles, XP, badges, and completed room states will be saved to your local database!
+#### 2. Launch the frontend:
+1. Double-click `index.html` to play. The client auto-detects `localhost` and routes database operations to your local server.
+
+---
+
+### Option B: Cloud Deployment (Fully Live Website)
+
+To run the backend fully in the cloud so anyone can access it online, follow these steps to deploy to **Render**:
+
+#### 1. Deploy the Backend Web Service on Render:
+1. Sign up for a free account at [Render.com](https://render.com).
+2. Click **New +** -> **Web Service**.
+3. Connect your GitHub repository `siya2040/cyber-escape`.
+4. Configure the following deployment settings:
+   * **Name**: `cyber-escape-backend`
+   * **Root Directory**: `backend`
+   * **Language/Environment**: `Java`
+   * **Build Command**: `./gradlew build -x test`
+   * **Start Command**: `java -jar build/libs/backend-0.0.1-SNAPSHOT.jar`
+   * **Instance Type**: `Free`
+5. Click **Deploy Web Service**. Render will build and deploy the container.
+
+#### 2. Set Up a Cloud PostgreSQL Database on Render:
+1. In your Render Dashboard, click **New +** -> **PostgreSQL**.
+2. Name it `cyber-escape-db` and select the **Free** tier.
+3. Click **Create Database**.
+4. Once created, copy the **Internal Database URL** (or External Database URL if connecting from your computer).
+5. Go back to your `cyber-escape-backend` Web Service -> **Environment** tab -> **Add Environment Variable**:
+   * `SPRING_DATASOURCE_URL` = `<your_postgresql_database_url>`
+   * `SPRING_DATASOURCE_USERNAME` = `db_user_provided_by_render`
+   * `SPRING_DATASOURCE_PASSWORD` = `db_password_provided_by_render`
+   * `SPRING_DATASOURCE_DRIVER` = `org.postgresql.Driver`
+   * `SPRING_JPA_PLATFORM` = `org.hibernate.dialect.PostgreSQLDialect`
+
+#### 3. Update the Production API Link:
+1. Once your backend is deployed, copy its URL (e.g., `https://cyber-escape-backend.onrender.com`).
+2. Open `assets/js/supabase.js` and replace the placeholder URL on line 5 with your live Render URL:
+   ```javascript
+   window.cyberBackendUrl = "https://your-custom-app.onrender.com";
+   ```
+3. Commit and push this change to GitHub. Your live GitHub Pages website will now automatically connect to your live Java backend on the cloud!
 
 ---
 
