@@ -43,16 +43,32 @@ This repository contains the **complete playable single-page web game applicatio
 
 ---
 
-## 🚀 How to Run the Game
+## 🚀 How to Run the Game with Java Spring Boot Backend
 
-No installations, build steps, or local servers are required!
-
-1. Clone or download this repository to your local machine:
+### 1. Start the Java Spring Boot Backend
+To run the database, leaderboard sync, and user profile authentication:
+1. Open a terminal and navigate to the `backend/` directory:
    ```bash
-   git clone https://github.com/yourusername/cyber-escape.git
+   cd backend
    ```
-2. Navigate into the directory and **double-click `index.html`** (or open it with any web browser like Google Chrome, Firefox, Microsoft Edge, or Safari).
-3. Maximize your browser and start your escape!
+2. Build and run the Spring Boot server using the Gradle wrapper:
+   * **On Windows (PowerShell/CMD)**:
+     ```powershell
+     .\gradlew bootRun
+     ```
+   * **On macOS/Linux**:
+     ```bash
+     ./gradlew bootRun
+     ```
+3. The server will start and listen on `http://localhost:8080`.
+4. You can access the **H2 Database Console** to view and query your data:
+   * **Console URL**: `http://localhost:8080/h2-console`
+   * **JDBC URL**: `jdbc:h2:file:./data/cyberescape`
+   * **Username**: `sa` (Leave password blank)
+
+### 2. Launch the Frontend Game Client
+1. Double-click **`index.html`** in your file manager to open it in any modern web browser (Google Chrome, Brave, Firefox, Edge, Safari).
+2. The game client will automatically detect and integrate with your local running Java Spring Boot backend. All registered profiles, XP, badges, and completed room states will be saved to your local database!
 
 ---
 

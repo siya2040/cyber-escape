@@ -268,20 +268,12 @@
      */
     loadProfile: async function(username) {
       try {
-        const { data, error } = await window.supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('username', username)
-          .single();
-        
-        if (error) {
-          if (error.code === 'PGRST116') {
-            // Row not found
-            return null;
-          }
-          throw error;
+        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/${username}`);
+        if (response.status === 404) {
+          return null;
         }
-        return data;
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        return await response.json();
       } catch (err) {
         console.error(`Failed to load profile for ${username}:`, err);
         throw err;
@@ -289,12 +281,7 @@
     },
 
     /**
-     * Helper to save/update a profile in Supabase
-     * @param {Object} profile 
-     * @returns {Promise<Object>}
-     */
-    /**
-     * Helper to save/update a profile in Supabase
+     * Helper to save/update a profile in Java Spring Boot Backend
      * @param {Object} profile 
      * @returns {Promise<Object>}
      */
@@ -312,17 +299,18 @@
           classroomcode: profile.classroomCode || profile.classroomcode
         };
 
-        console.log("Supabase saveProfile: Executing update query for user:", profile.username, "with payload:", payload);
+        console.log("Java Backend saveProfile: Executing update query for user:", profile.username, "with payload:", payload);
 
-        const { data, error } = await window.supabaseClient
-          .from('profiles')
-          .update(payload)
-          .eq('username', profile.username)
-          .select();
+        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/${profile.username}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-        console.log("Supabase saveProfile result - Data:", data, "Error:", error);
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        const data = await response.json();
 
-        if (error) throw error;
+        console.log("Java Backend saveProfile result - Data:", data);
         return data;
       } catch (err) {
         console.error(`Failed to save profile for ${profile.username}:`, err);
@@ -331,7 +319,7 @@
     },
 
     /**
-     * Helper to register a new profile in Supabase
+     * Helper to register a new profile in Java Spring Boot Backend
      * @param {Object} profile 
      * @returns {Promise<Object>}
      */
@@ -351,13 +339,14 @@
           classroomcode: profile.classroomCode || profile.classroomcode || ""
         };
 
-        const { data, error } = await window.supabaseClient
-          .from('profiles')
-          .insert([payload])
-          .select();
+        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-        if (error) throw error;
-        return data;
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        return await response.json();
       } catch (err) {
         console.error(`Failed to register profile for ${profile.username}:`, err);
         throw err;
@@ -365,24 +354,30 @@
     },
 
     /**
-     * Helper to authenticate a username and passcode against Supabase
+     * Helper to authenticate a username and passcode against Java Spring Boot Backend
      * @param {string} username 
      * @param {string} passcode 
      * @returns {Promise<Object>}
      */
     authenticateProfile: async function(username, passcode) {
       try {
-        const profile = await this.loadProfile(username);
-        if (!profile) {
-          return { success: false, reason: "username_not_found" };
+        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/auth`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, passcode })
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) return { success: false, reason: "username_not_found" };
+          if (response.status === 401) return { success: false, reason: "invalid_passcode" };
+          throw new Error("HTTP error " + response.status);
         }
-        if (profile.passcode !== passcode) {
-          return { success: false, reason: "invalid_passcode" };
-        }
-        return { success: true, profile: profile };
+        const data = await response.json();
+        return { success: true, profile: data };
       } catch (err) {
         console.error(`Authentication error for ${username}:`, err);
         throw err;
+      }
       }
     },
 
@@ -1286,12 +1281,9 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Loading mainframe rankings...</td></tr>`;
       
       try {
-        const { data: profiles, error } = await window.supabaseClient
-          .from('profiles')
-          .select('*')
-          .order('score', { ascending: false });
-
-        if (error) throw error;
+        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles`);
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        const profiles = await response.json();
 
         tbody.innerHTML = "";
         
