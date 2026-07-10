@@ -337,6 +337,18 @@
     },
 
     /**
+     * Helper to compute a secure client-side SHA-256 hash of the passcode
+     * @param {string} passcode
+     * @returns {Promise<string>}
+     */
+    hashPasscode: async function(passcode) {
+      const msgBuffer = new TextEncoder().encode(passcode);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    /**
      * Helper to register a new profile in Supabase
      * @param {Object} profile 
      * @returns {Promise<Object>}
@@ -346,9 +358,10 @@
         throw new Error("Supabase client is offline or blocked by Brave Shields / Adblockers.");
       }
       try {
+        const hashedPasscode = await this.hashPasscode(profile.passcode);
         const payload = {
           username: profile.username,
-          passcode: profile.passcode,
+          passcode: hashedPasscode,
           xp: profile.xp || 0,
           level: profile.level || 1,
           score: profile.score || 0,
@@ -385,9 +398,37 @@
         if (!profile) {
           return { success: false, reason: "username_not_found" };
         }
-        if (profile.passcode !== passcode) {
+        
+        const enteredHash = await this.hashPasscode(passcode);
+        let isValid = false;
+        
+        if (profile.passcode && profile.passcode.length === 64) {
+          // Compare SHA-256 hashes
+          isValid = (profile.passcode === enteredHash);
+        } else {
+          // Backward compatibility: check plaintext, then auto-upgrade to hash
+          if (profile.passcode === passcode) {
+            isValid = true;
+            console.log(`[Security Engine] Auto-upgrading plain-text passcode to SHA-256 for user: ${username}`);
+            // Trigger background upgrade
+            setTimeout(async () => {
+              try {
+                await window.supabaseClient
+                  .from('profiles')
+                  .update({ passcode: enteredHash })
+                  .eq('username', username);
+                console.log(`[Security Engine] Passcode upgrade successful for ${username}.`);
+              } catch (upgradeErr) {
+                console.error("Failed to upgrade passcode:", upgradeErr);
+              }
+            }, 100);
+          }
+        }
+
+        if (!isValid) {
           return { success: false, reason: "invalid_passcode" };
         }
+        
         return { success: true, profile: profile };
       } catch (err) {
         console.error(`Authentication error for ${username}:`, err);
