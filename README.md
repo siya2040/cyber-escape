@@ -1,81 +1,63 @@
 # Cyber Escape with Simba 🐱⚡
 
 [![Play Live](https://img.shields.io/badge/Play-Live%20Game-success?style=for-the-badge&logo=google-chrome&logoColor=white)](https://siya2040.github.io/cyber-escape/)
-[![Status](https://img.shields.counts.io/badge/Status-Playable%20Beta-brightgreen.svg)]()
-[![Version](https://img.shields.counts.io/badge/Version-1.0.0-cyan.svg)]()
-[![Platform](https://img.shields.counts.io/badge/Platform-Web%20Browser-orange.svg)]()
+[![Status](https://img.shields.io/badge/Status-Complete-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/Version-1.0.0-cyan.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Web%20Browser-orange.svg)]()
 
 ### 🎮 [👉 CLICK HERE TO PLAY THE LIVE GAME!](https://siya2040.github.io/cyber-escape/)
 
-**Cyber Escape with Simba** is a beautiful, immersive, retro-cyberpunk browser-based escape room game designed to teach real-world cybersecurity concepts through engaging pixel-art puzzle gameplay. Guided by **Simba** — a pixel-art cat with a glowing cyber collar and high-tech visor — players solve increasingly complex challenges covering phishing, password security, network vulnerabilities, cryptography, and more.
+**Cyber Escape with Simba** is an immersive, interactive, retro-cyberpunk cybersecurity educational game. Guided by **Simba** — a cyber-cat guide with a high-tech communication visor — players decrypt mainframes, configure security policies, analyze threat scripts, and complete 10 specialized security rooms to restore the system.
 
-This repository contains the **complete playable single-page web game application**, built entirely in high-fidelity Vanilla HTML5, CSS3, and ES6 JavaScript. It has **zero dependencies**, loads instantly, and runs natively in any modern web browser.
+Built with high-performance vanilla web technologies, the application loads instantly, persists player stats automatically using a cloud database, and features a live multi-user classroom scoreboard.
 
 ---
 
 ## 🎮 Key Features
 
-1. **Retro CRT Terminal HUD**: Immersive dark mode dashboard featuring moving scanline grids, glowing borders, and retro visual overlays that can be toggled in real-time.
-2. **City Map Room Selector**: A pixel-art-themed city hub representing 10 different security escape rooms. Tracks completed, unlocked, and locked room states dynamically.
-3. **Simba Interactive Guide**: A pixel-art cat who appears in high-tech speech bubbles to offer contextual hints and reacts emotionally (Happy `😻`, Alert `😼`, Warned/Worried `😾`) depending on your answers.
-4. **Three Fully Playable Puzzles**:
-   - **Room 1: Phishing Firewall**: A drag-and-drop / click email security analyzer. Read inbound emails and flag suspicious markers (urgent tones, suspicious links, spoofed header domains) to purge the firewall.
-   - **Room 2: Password Crypt**: A password vault constructor sandbox. Build a passcode strong enough to resist deep dictionary and brute-force cracking algorithms, observing real-time crack-speed statistics.
-   - **Room 3: Decryption Terminal**: A retro command console decryption puzzle. Shift cipher characters (Caesar index rotation) and decode Base64 outputs to disable mainframe overrides.
-5. **Debrief Terminal**: Simba translates each completed escape challenge into real-world equivalents mapped directly to **NIST**, **OWASP Top 10**, and **CompTIA Security+** domains.
-6. **XP & Badge Progression Profile**: Earn XP (+150 XP per room), rank up through security tiers (Levels 1–50), and unlock beautiful badges like `Phishing Spotter`, `Password Guru`, and `Crypto Ninja`.
-7. **Classroom Portal & Global Leaderboard**: View active speedrun leaderboards and preview educator panels designed for teachers to assign rooms and track students' progress.
+1. **10 Specialized Security Rooms**: Fully playable security rooms teaching concepts ranging from Phishing and Strong Passwords to Encryption, Malware analysis, Multi-Factor Authentication, OSINT, and Incident Response.
+2. **Retro CRT HUD Interface**: Immersive cyber dashboard featuring moving scanline overlays, glowing outlines, and a toggleable retro phosphor filter.
+3. **Interactive Dialogue Engine**: Simba appears dynamically to offer context-based hints and shifts expression (Happy `😻`, Alert `😼`, Warned `😾`) depending on player actions.
+4. **Persistent Progression & Leveling**: Tracks XP (+150 XP per room), levels (Levels 1–5), score, and time-completed records saved permanently.
+5. **Acquirable Badges**: 10 collectable security badges (e.g., `Phishing Spotter`, `Password Guru`, `Crypto Ninja`) earned upon completing respective rooms.
+6. **Classroom Telemetry Network**: Students can input an educator code (e.g., `1234`) to link their session, instantly receiving an XP bonus and populating a real-time classroom ranking table.
+7. **Brave Shield / Adblocker Guard**: Built-in connection detection that handles blocked database scripts gracefully, advising players how to whitelist or switch to Guest Play.
+8. **Offline Guest Mode**: Runs entirely in local memory using `localStorage` if database networks are unavailable.
 
 ---
 
-## 📂 Repository Directory Structure
+## 📂 Repository Structure
 
 ```
 .
-├── README.md                 # Project README and GitHub setup guide
-├── PRD.md                    # Detailed Product Requirements Document (Reference specs)
-├── index.html                # Main game entry point (Contains the viewport containers)
+├── README.md                 # Project information and setup guide
+├── PRD.md                    # Product Requirements Document
+├── index.html                # Main application viewport and interface wrappers
 └── assets/
     ├── css/
-    │   └── styles.css        # Cyberpunk game HUD stylesheet, transitions, and CRT scanlines
+    │   └── styles.css        # Dashboard styling, keyframe animations, and CRT scanlines
     └── js/
-        ├── game.js           # Core state controller, view routers, XP engine, profiles
-        └── puzzles.js        # Independent puzzle algorithms (Phishing, Password, & Cipher terminal)
+        ├── supabase.js       # Supabase client credentials and connection initialization
+        ├── puzzles_v2.js     # Algorithms and logic for all 10 security rooms
+        └── game_v2.js        # Core state manager, view router, and UI telemetry controllers
 ```
 
 ---
 
 ## 🚀 How to Run the Game
 
-No installations, build steps, or local servers are required!
+No builds, compilers, or local web servers are required!
 
-1. Clone or download this repository to your local machine:
+1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/cyber-escape.git
+   git clone https://github.com/siya2040/cyber-escape.git
    ```
-2. Navigate into the directory and **double-click `index.html`** (or open it with any web browser like Google Chrome, Firefox, Microsoft Edge, or Safari).
-3. Maximize your browser and start your escape!
+2. Open the project folder and **double-click `index.html`** to run the game natively in your preferred web browser.
 
 ---
 
-## 🛠️ Technology Stack & Mapping Spec
+## 🛠️ Technology Stack
 
-To satisfy the grading and syllabus guidelines, this project aligns with the recommended tech stack through an optimized **Serverless BaaS (Backend-as-a-Service)** architecture, mapping the requirements as follows:
-
-| Recommended Stack | Implemented Architecture | Role & Replacement Rationale |
-| :--- | :--- | :--- |
-| **React / Next.js** | **Vanilla HTML5 & ES6 Javascript** | Achieves a zero-build pipeline, loading in `<100ms` directly at the edge without bundler overhead. |
-| **Tailwind CSS** | **Custom CSS3 Variable Tokens** | Custom HSL variable themes (`--cyber-cyan`, `--cyber-pink`) and grid/flex utilities replicate utility styling natively. |
-| **Node.js + Express** | **Supabase Serverless REST API** | Direct edge endpoints remove container hosting latency and cold starts on Render/AWS. |
-| **MongoDB** | **Supabase PostgreSQL DB** | Provides structured schemas and Row-Level Security (RLS) tables necessary for player profile integrity. |
-| **JWT Auth** | **Supabase Auth JWT Tokens** | Session authentication is validated via cryptographically signed JWTs passed in headers. |
-| **Framer Motion** | **CSS3 Keyframe Animations** | Hardware-accelerated CSS animations drive all HUD transitions at a constant 60FPS. |
-| **Vercel / Render** | **GitHub Pages Edge CDN** | Deployable as a static SPA at the edge, removing server cost and container uptime dependencies. |
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-Developed with 🐱 by the Product & Development Team. Happy hacking!
+* **Frontend**: HTML5, ES6 JavaScript, and CSS3 Variable Design System (Grid, Flexbox, custom keyframes).
+* **Database & Auth**: Supabase Cloud BaaS (PostgreSQL database for real-time ranking tables and session profiles).
+* **Deployment**: GitHub Pages Edge CDN.
