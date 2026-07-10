@@ -1,8 +1,18 @@
-// Auto-detect environment: use local port 8080 for development, and the cloud Render URL for production
-if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
-  window.cyberBackendUrl = "http://localhost:8080";
-} else {
-  // Replace this placeholder with your actual live Render URL after deployment!
-  window.cyberBackendUrl = "https://cyber-escape-backend.onrender.com";
+const supabaseUrl = "https://tdcpbvuusudpzpycodtf.supabase.co";
+const supabaseKey = "sb_publishable_JzTeIkheMuix-QBci5JpEg_IgWpvCYw";
+
+window.supabaseClient = null;
+
+try {
+  if (typeof supabase !== "undefined") {
+    window.supabaseClient = supabase.createClient(
+        supabaseUrl,
+        supabaseKey
+    );
+    console.log("Supabase Connected:", window.supabaseClient);
+  } else {
+    console.warn("Supabase library is not loaded. Network CDN might be blocked.");
+  }
+} catch (err) {
+  console.error("Failed to initialize Supabase client:", err);
 }
-console.log("Java Spring Boot Backend URL configured to:", window.cyberBackendUrl);

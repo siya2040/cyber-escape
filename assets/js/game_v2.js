@@ -267,13 +267,24 @@
      * @returns {Promise<Object|null>}
      */
     loadProfile: async function(username) {
+      if (!window.supabaseClient) {
+        throw new Error("Supabase client is offline or blocked by Brave Shields / Adblockers.");
+      }
       try {
-        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/${username}`);
-        if (response.status === 404) {
-          return null;
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('username', username)
+          .single();
+        
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // Row not found
+            return null;
+          }
+          throw error;
         }
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        return await response.json();
+        return data;
       } catch (err) {
         console.error(`Failed to load profile for ${username}:`, err);
         throw err;
@@ -281,11 +292,19 @@
     },
 
     /**
-     * Helper to save/update a profile in Java Spring Boot Backend
+     * Helper to save/update a profile in Supabase
+     * @param {Object} profile 
+     * @returns {Promise<Object>}
+     */
+    /**
+     * Helper to save/update a profile in Supabase
      * @param {Object} profile 
      * @returns {Promise<Object>}
      */
     saveProfile: async function(profile) {
+      if (!window.supabaseClient) {
+        throw new Error("Supabase client is offline or blocked by Brave Shields / Adblockers.");
+      }
       try {
         const payload = {
           xp: profile.xp,
@@ -299,18 +318,17 @@
           classroomcode: profile.classroomCode || profile.classroomcode
         };
 
-        console.log("Java Backend saveProfile: Executing update query for user:", profile.username, "with payload:", payload);
+        console.log("Supabase saveProfile: Executing update query for user:", profile.username, "with payload:", payload);
 
-        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/${profile.username}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .update(payload)
+          .eq('username', profile.username)
+          .select();
 
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        const data = await response.json();
+        console.log("Supabase saveProfile result - Data:", data, "Error:", error);
 
-        console.log("Java Backend saveProfile result - Data:", data);
+        if (error) throw error;
         return data;
       } catch (err) {
         console.error(`Failed to save profile for ${profile.username}:`, err);
@@ -319,11 +337,14 @@
     },
 
     /**
-     * Helper to register a new profile in Java Spring Boot Backend
+     * Helper to register a new profile in Supabase
      * @param {Object} profile 
      * @returns {Promise<Object>}
      */
     registerProfile: async function(profile) {
+      if (!window.supabaseClient) {
+        throw new Error("Supabase client is offline or blocked by Brave Shields / Adblockers.");
+      }
       try {
         const payload = {
           username: profile.username,
@@ -339,14 +360,13 @@
           classroomcode: profile.classroomCode || profile.classroomcode || ""
         };
 
-        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .insert([payload])
+          .select();
 
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        return await response.json();
+        if (error) throw error;
+        return data;
       } catch (err) {
         console.error(`Failed to register profile for ${profile.username}:`, err);
         throw err;
@@ -354,26 +374,21 @@
     },
 
     /**
-     * Helper to authenticate a username and passcode against Java Spring Boot Backend
+     * Helper to authenticate a username and passcode against Supabase
      * @param {string} username 
      * @param {string} passcode 
      * @returns {Promise<Object>}
      */
     authenticateProfile: async function(username, passcode) {
       try {
-        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles/auth`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, passcode })
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) return { success: false, reason: "username_not_found" };
-          if (response.status === 401) return { success: false, reason: "invalid_passcode" };
-          throw new Error("HTTP error " + response.status);
+        const profile = await this.loadProfile(username);
+        if (!profile) {
+          return { success: false, reason: "username_not_found" };
         }
-        const data = await response.json();
-        return { success: true, profile: data };
+        if (profile.passcode !== passcode) {
+          return { success: false, reason: "invalid_passcode" };
+        }
+        return { success: true, profile: profile };
       } catch (err) {
         console.error(`Authentication error for ${username}:`, err);
         throw err;
@@ -469,7 +484,10 @@
               await this.loginSuccess(false);
             } catch (err) {
               console.error("Sign in error:", err);
-              const msg = `"Database link offline! Meow! Failed to connect to identity mainframe."`;
+              let msg = `"Database link offline! Meow! Failed to connect to identity mainframe."`;
+              if (!window.supabaseClient || (err.message && err.message.includes("Brave Shields"))) {
+                msg = `"Mainframe connection blocked! 😾 Please check your internet connection or disable Brave Shields / Adblockers for this site."`;
+              }
               if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
                 window.CyberPuzzles.updateSimbaDialog(msg, "error");
               }
@@ -545,7 +563,10 @@
               await this.loginSuccess(true);
             } catch (err) {
               console.error("Registration error:", err);
-              const msg = `"Database link offline! Meow! Failed to write identity node to mainframe."`;
+              let msg = `"Database link offline! Meow! Failed to write identity node to mainframe."`;
+              if (!window.supabaseClient || (err.message && err.message.includes("Brave Shields"))) {
+                msg = `"Mainframe connection blocked! 😾 Please check your internet connection or disable Brave Shields / Adblockers for this site."`;
+              }
               if (window.CyberPuzzles && typeof window.CyberPuzzles.updateSimbaDialog === "function") {
                 window.CyberPuzzles.updateSimbaDialog(msg, "error");
               }
@@ -1280,9 +1301,12 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Loading mainframe rankings...</td></tr>`;
       
       try {
-        const response = await fetch(`${window.cyberBackendUrl || 'http://localhost:8080'}/api/profiles`);
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        const profiles = await response.json();
+        const { data: profiles, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .order('score', { ascending: false });
+
+        if (error) throw error;
 
         tbody.innerHTML = "";
         
