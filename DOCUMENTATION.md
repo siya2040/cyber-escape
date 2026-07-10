@@ -7,8 +7,7 @@
 *   **Live Deployed URL**: [https://siya2040.github.io/cyber-escape/](https://siya2040.github.io/cyber-escape/)
 
 ### **Project Team Details**
-*   **Group Lead**: Siya Chauhan
-*   **Group Member**: Vishesh Duggal
+*   **Submitted By**: Siya Chauhan (Individual Project)
 
 ---
 
@@ -95,15 +94,15 @@ The database schema is mapped inside a single relational PostgreSQL table `profi
 erDiagram
     PROFILES {
         uuid id PK
-        string username UNIQUE
-        string passcode "SHA-256 Encrypted Hash"
+        string username
+        string passcode
         integer xp
         integer level
         integer score
         integer maxxp
-        string[] completedrooms "Array of completed room IDs"
-        string[] badges "Array of unlocked achievement badges"
-        jsonb roomtimes "Solve time timestamps per room"
+        string completedrooms
+        string badges
+        jsonb roomtimes
         boolean classroomlinked
         string classroomcode
         timestamp created_at
