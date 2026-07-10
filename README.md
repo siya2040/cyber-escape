@@ -60,19 +60,11 @@ No installations, build steps, or local servers are required!
 
 ---
 
-## 🛠️ Technology Stack & Mapping Spec
+## 🛠️ Technology Stack
 
-To satisfy the grading and syllabus guidelines, this project aligns with the recommended tech stack through an optimized **Serverless BaaS (Backend-as-a-Service)** architecture, mapping the requirements as follows:
-
-| Recommended Stack | Implemented Architecture | Role & Replacement Rationale |
-| :--- | :--- | :--- |
-| **React / Next.js** | **Vanilla HTML5 & ES6 Javascript** | Achieves a zero-build pipeline, loading in `<100ms` directly at the edge without bundler overhead. |
-| **Tailwind CSS** | **Custom CSS3 Variable Tokens** | Custom HSL variable themes (`--cyber-cyan`, `--cyber-pink`) and grid/flex utilities replicate utility styling natively. |
-| **Node.js + Express** | **Supabase Serverless REST API** | Direct edge endpoints remove container hosting latency and cold starts on Render/AWS. |
-| **MongoDB** | **Supabase PostgreSQL DB** | Provides structured schemas and Row-Level Security (RLS) tables necessary for player profile integrity. |
-| **JWT Auth** | **Supabase Auth JWT Tokens** | Session authentication is validated via cryptographically signed JWTs passed in headers. |
-| **Framer Motion** | **CSS3 Keyframe Animations** | Hardware-accelerated CSS animations drive all HUD transitions at a constant 60FPS. |
-| **Vercel / Render** | **GitHub Pages Edge CDN** | Deployable as a static SPA at the edge, removing server cost and container uptime dependencies. |
+*   **Frontend**: High-Fidelity HTML5, ES6 JavaScript, and custom CSS3 Variable System (Grid, Flexbox, custom keyframes).
+*   **Backend & Database**: Supabase Cloud BaaS (PostgreSQL database for real-time ranking tables and session profiles).
+*   **Hosting & Deployment**: GitHub Pages Edge CDN.
 
 ---
 
