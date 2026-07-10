@@ -1279,15 +1279,120 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
       }
     },
 
-    updateClassroomTab: function() {
+    updateClassroomTab: async function() {
       const statusEl = document.getElementById("activeClassStatus");
-      if (!statusEl) return;
+      const telemetryContent = document.getElementById("classroomTelemetryContent");
+      if (!statusEl || !telemetryContent) return;
+      
       if (this.state.classroomLinked && this.state.classroomCode) {
         statusEl.innerHTML = `Linked connection active: Connected to <strong class="text-green">${this.state.classroomCode}</strong>! Simba is issuing decryption telemetry files directly to your educator console!`;
         statusEl.className = "active-class-status text-green";
+        
+        telemetryContent.innerHTML = `<div class="text-center text-muted" style="font-size:11px; padding:10px;">Querying classroom telemetry database...</div>`;
+        
+        try {
+          if (!window.supabaseClient) {
+            throw new Error("Offline Mode");
+          }
+          
+          const { data: students, error } = await window.supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('classroomcode', this.state.classroomCode)
+            .order('score', { ascending: false });
+            
+          if (error) throw error;
+          
+          if (students && students.length > 0) {
+            let html = `
+              <div style="font-size:11px; font-weight:700; color:var(--cyber-green); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">
+                CONNECTED SPECIALISTS IN NET '${this.state.classroomCode}' (${students.length}):
+              </div>
+              <table class="cyber-table" style="font-size:11px; width:100%; margin-top:5px;">
+                <thead>
+                  <tr>
+                    <th>RANK</th>
+                    <th>CODENAME</th>
+                    <th>LEVEL</th>
+                    <th>SCORE</th>
+                    <th>DECRYPTED ROOMS</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            students.forEach((student, index) => {
+              const roomsCount = student.completedrooms ? student.completedrooms.length : 0;
+              const isSelf = student.username === this.state.username;
+              html += `
+                <tr class="${isSelf ? 'highlighted' : ''}">
+                  <td>#${index + 1}</td>
+                  <td class="text-cyan">${student.username} ${isSelf ? '🛡️' : ''}</td>
+                  <td>LV ${student.level}</td>
+                  <td class="text-green">${student.score}</td>
+                  <td>${roomsCount}/10</td>
+                </tr>
+              `;
+            });
+            
+            html += `
+                </tbody>
+              </table>
+            `;
+            telemetryContent.innerHTML = html;
+          } else {
+            telemetryContent.innerHTML = `
+              <div class="telemetry-item text-center">
+                <span class="t-students">0 Connected Specialists</span>
+                <span class="t-completions">Waiting for connections to group '${this.state.classroomCode}'...</span>
+              </div>
+            `;
+          }
+        } catch (err) {
+          console.warn("Classroom telemetry fetch failed (offline/blocked):", err);
+          // Fallback to local user only
+          telemetryContent.innerHTML = `
+            <div style="font-size:11px; font-weight:700; color:var(--cyber-green); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">
+              CONNECTED SPECIALISTS IN NET '${this.state.classroomCode}' (1):
+            </div>
+            <table class="cyber-table" style="font-size:11px; width:100%; margin-top:5px;">
+              <thead>
+                <tr>
+                  <th>RANK</th>
+                  <th>CODENAME</th>
+                  <th>LEVEL</th>
+                  <th>SCORE</th>
+                  <th>DECRYPTED ROOMS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="highlighted">
+                  <td>#1</td>
+                  <td class="text-cyan">${this.state.username} 🛡️</td>
+                  <td>LV ${this.state.level}</td>
+                  <td class="text-green">${this.state.score}</td>
+                  <td>${this.state.completedRooms.length}/10</td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        }
       } else {
         statusEl.innerHTML = `Not connected to an educator server node. Play as Guest or create custom speedrun trials!`;
         statusEl.className = "active-class-status";
+        
+        telemetryContent.innerHTML = `
+          <div class="telemetry-item">
+            <span class="t-class">SEC-202 (Intro to Cybersecurity)</span>
+            <span class="t-students">18 Active Specialists</span>
+            <span class="t-completions">84% Completion Ratio</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="t-class">COMP-101 (Computer Core Systems)</span>
+            <span class="t-students">34 Active Specialists</span>
+            <span class="t-completions">91% Completion Ratio</span>
+          </div>
+        `;
       }
     },
 
@@ -1399,6 +1504,9 @@ Status: 100% SECURED BY SIMBA THE CAT! 😻
             // Give a join bonus
             this.addXp(100);
             this.addScore(250);
+            
+            // Dynamically refresh classroom telemetry listings
+            this.updateClassroomTab();
             
             alert(`Syllabus Link Established! 😻 Connected directly to instructor group '${val}'. Decryption telemetry pipelines activated! Received +100 XP and +250 XP bonus!`);
             codeInput.value = "";
