@@ -378,7 +378,6 @@
         console.error(`Authentication error for ${username}:`, err);
         throw err;
       }
-      }
     },
 
     saveCurrentProgress: async function() {
